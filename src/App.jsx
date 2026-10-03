@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import "./App.css";
+import { supabase } from "./lib/supabase";
 
 const CATEGORIAS = [
   "Todo",
@@ -63,7 +64,6 @@ function App() {
   });
 
   const [categoriaActiva, setCategoriaActiva] = useState("Todo");
-
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
 
   const [foto, setFoto] = useState("");
@@ -87,35 +87,438 @@ function App() {
   const [nombreLook, setNombreLook] = useState("");
   const [modoAleatorio, setModoAleatorio] = useState(false);
 
+  const [cargandoPrendas, setCargandoPrendas] = useState(true);
+  const cargaPrendasIniciada = useRef(false);
+
+  /* =====================================================
+     COPIA LOCAL
+  ===================================================== */
+
   useEffect(() => {
-    localStorage.setItem(
-      "vestelle_prendas",
-      JSON.stringify(prendas)
-    );
+    try {
+      localStorage.setItem(
+        "vestelle_prendas",
+        JSON.stringify(prendas)
+      );
+    } catch (error) {
+      console.error(
+        "No se pudieron guardar las prendas localmente:",
+        error
+      );
+    }
   }, [prendas]);
 
   useEffect(() => {
-    localStorage.setItem(
-      "vestelle_looks",
-      JSON.stringify(looks)
-    );
+    try {
+      localStorage.setItem(
+        "vestelle_looks",
+        JSON.stringify(looks)
+      );
+    } catch (error) {
+      console.error(
+        "No se pudieron guardar los looks:",
+        error
+      );
+    }
   }, [looks]);
 
   /* =====================================================
-     UTILIDADES
+     FOTOS DE SUPABASE STORAGE
   ===================================================== */
 
-  const leerImagen = (archivo) => {
-    if (!archivo) return;
+  const crearUrlFoto = async (imagePath) => {
+    if (!imagePath) return "";
 
-    const reader = new FileReader();
+    const { data, error } = await supabase.storage
+      .from("prendas")
+      .createSignedUrl(
+        imagePath,
+        60 * 60 * 24 * 7
+      );
 
-    reader.onload = (e) => {
-      setFoto(e.target.result);
+    if (error) {
+      console.error(
+        "ERROR AL CREAR URL DE FOTO:",
+        error
+      );
+
+      return "";
+    }
+
+    return data?.signedUrl || "";
+  };
+
+  const convertirFilaPrenda = async (fila) => {
+    return {
+      id: fila.id,
+      nombre: fila.nombre,
+      categoria: fila.categoria,
+      color: fila.color || "",
+      estilo: fila.estilo || "",
+      favorita: Boolean(fila.favorita),
+      foto: await crearUrlFoto(fila.image_path),
+      imagePath: fila.image_path || "",
+      fecha: fila.created_at,
+    };
+  };
+
+  /* =====================================================
+     CARGAR PRENDAS DESDE SUPABASE
+  ===================================================== */
+
+  useEffect(() => {
+    if (cargaPrendasIniciada.current) return;
+
+    cargaPrendasIniciada.current = true;
+
+    let activo = true;
+
+    const cargarPrendas = async () => {
+      setCargandoPrendas(true);
+
+      try {
+        const {
+          data: usuarioData,
+          error: usuarioError,
+        } = await supabase.auth.getUser();
+
+        if (usuarioError) {
+          console.error(
+            "ERROR AL OBTENER USUARIO:",
+            usuarioError
+          );
+
+          if (activo) {
+            setCargandoPrendas(false);
+          }
+
+          return;
+        }
+
+        if (!usuarioData?.user) {
+          console.error(
+            "NO HAY USUARIO AUTENTICADO."
+          );
+
+          if (activo) {
+            setCargandoPrendas(false);
+          }
+
+          return;
+        }
+
+        const usuarioId = usuarioData.user.id;
+
+        const {
+          data: filas,
+          error,
+        } = await supabase
+          .from("prendas")
+          .select("*")
+          .eq("user_id", usuarioId)
+          .order("created_at", {
+            ascending: false,
+          });
+
+        if (error) {
+          console.error(
+            "ERROR AL CONSULTAR TABLA PRENDAS:",
+            error
+          );
+
+          if (activo) {
+            setCargandoPrendas(false);
+          }
+
+          return;
+        }
+
+        const prendasLocales = (() => {
+          try {
+            const guardadas =
+              localStorage.getItem(
+                "vestelle_prendas"
+              );
+
+            return guardadas
+              ? JSON.parse(guardadas)
+              : [];
+          } catch {
+            return [];
+          }
+        })();
+
+        let filasFinales = filas || [];
+
+        /* =================================================
+           MIGRACIÓN DE PRENDAS LOCALES
+        ================================================= */
+
+        if (
+          filasFinales.length === 0 &&
+          prendasLocales.length > 0
+        ) {
+          console.log(
+            "Supabase está vacío. Intentando migrar prendas locales..."
+          );
+
+          for (
+            const prendaLocal of prendasLocales
+          ) {
+            try {
+              if (!prendaLocal.foto) {
+                continue;
+              }
+
+              const imagePath =
+                `${usuarioId}/legacy-${prendaLocal.id}.jpg`;
+
+              const {
+                data: existente,
+                error: errorExistente,
+              } = await supabase
+                .from("prendas")
+                .select("*")
+                .eq("user_id", usuarioId)
+                .eq(
+                  "image_path",
+                  imagePath
+                )
+                .maybeSingle();
+
+              if (errorExistente) {
+                console.error(
+                  "ERROR BUSCANDO PRENDA LOCAL EXISTENTE:",
+                  errorExistente
+                );
+              }
+
+              if (existente) {
+                filasFinales.push(
+                  existente
+                );
+
+                continue;
+              }
+
+              const respuestaFoto =
+                await fetch(
+                  prendaLocal.foto
+                );
+
+              if (!respuestaFoto.ok) {
+                throw new Error(
+                  "No se pudo convertir la foto local."
+                );
+              }
+
+              const blobFoto =
+                await respuestaFoto.blob();
+
+              const {
+                error: errorUpload,
+              } = await supabase.storage
+                .from("prendas")
+                .upload(
+                  imagePath,
+                  blobFoto,
+                  {
+                    contentType:
+                      "image/jpeg",
+                    upsert: true,
+                  }
+                );
+
+              if (errorUpload) {
+                console.error(
+                  "ERROR MIGRANDO FOTO:",
+                  errorUpload
+                );
+
+                continue;
+              }
+
+              const {
+                data: filaNueva,
+                error: errorInsert,
+              } = await supabase
+                .from("prendas")
+                .insert({
+                  user_id: usuarioId,
+                  nombre:
+                    prendaLocal.nombre,
+                  categoria:
+                    prendaLocal.categoria,
+                  color:
+                    prendaLocal.color ||
+                    null,
+                  estilo:
+                    prendaLocal.estilo ||
+                    null,
+                  favorita:
+                    Boolean(
+                      prendaLocal.favorita
+                    ),
+                  image_path:
+                    imagePath,
+                })
+                .select()
+                .single();
+
+              if (errorInsert) {
+                console.error(
+                  "ERROR MIGRANDO REGISTRO:",
+                  errorInsert
+                );
+
+                continue;
+              }
+
+              filasFinales.push(
+                filaNueva
+              );
+            } catch (errorMigracion) {
+              console.error(
+                "ERROR GENERAL MIGRANDO PRENDA:",
+                errorMigracion
+              );
+            }
+          }
+        }
+
+        const prendasCloud =
+          await Promise.all(
+            filasFinales.map(
+              (fila) =>
+                convertirFilaPrenda(
+                  fila
+                )
+            )
+          );
+
+        if (activo) {
+          setPrendas(
+            prendasCloud
+          );
+        }
+      } catch (error) {
+        console.error(
+          "ERROR GENERAL CARGANDO PRENDAS:",
+          error
+        );
+      } finally {
+        if (activo) {
+          setCargandoPrendas(false);
+        }
+      }
     };
 
-    reader.readAsDataURL(archivo);
+    cargarPrendas();
+
+    return () => {
+      activo = false;
+    };
+  }, []);
+
+  /* =====================================================
+     PROCESAR FOTO
+  ===================================================== */
+
+  const procesarImagen = (archivo) => {
+    if (!archivo) return;
+
+    const lector =
+      new FileReader();
+
+    lector.onload = (evento) => {
+      const imagen =
+        new Image();
+
+      imagen.onload = () => {
+        const canvas =
+          document.createElement(
+            "canvas"
+          );
+
+        const maximo = 900;
+
+        let ancho =
+          imagen.width;
+
+        let alto =
+          imagen.height;
+
+        if (
+          ancho > maximo ||
+          alto > maximo
+        ) {
+          if (
+            ancho > alto
+          ) {
+            alto =
+              Math.round(
+                (alto *
+                  maximo) /
+                  ancho
+              );
+
+            ancho =
+              maximo;
+          } else {
+            ancho =
+              Math.round(
+                (ancho *
+                  maximo) /
+                  alto
+              );
+
+            alto =
+              maximo;
+          }
+        }
+
+        canvas.width =
+          ancho;
+
+        canvas.height =
+          alto;
+
+        const contexto =
+          canvas.getContext(
+            "2d"
+          );
+
+        contexto.drawImage(
+          imagen,
+          0,
+          0,
+          ancho,
+          alto
+        );
+
+        const imagenComprimida =
+          canvas.toDataURL(
+            "image/jpeg",
+            0.82
+          );
+
+        setFoto(
+          imagenComprimida
+        );
+      };
+
+      imagen.src =
+        evento.target.result;
+    };
+
+    lector.readAsDataURL(
+      archivo
+    );
   };
+
+  /* =====================================================
+     FORMULARIO
+  ===================================================== */
 
   const limpiarFormulario = () => {
     setFoto("");
@@ -137,106 +540,510 @@ function App() {
   };
 
   /* =====================================================
-     PRENDAS
+     GUARDAR PRENDA — DIAGNÓSTICO DETALLADO
   ===================================================== */
 
-  const guardarPrenda = () => {
+  const guardarPrenda = async () => {
     if (!nombre.trim()) {
-      alert("Escribe un nombre para la prenda.");
+      alert(
+        "Escribe un nombre para la prenda."
+      );
       return;
     }
 
     if (!foto) {
-      alert("Agrega una foto de la prenda.");
+      alert(
+        "Agrega una foto de la prenda."
+      );
       return;
     }
 
-    const nuevaPrenda = {
-      id: Date.now(),
-      nombre: nombre.trim(),
-      categoria,
-      color,
-      estilo,
-      favorita,
-      foto,
-      fecha: new Date().toISOString(),
-    };
+    try {
+      console.log(
+        "========== VESTELLE: GUARDAR PRENDA =========="
+      );
 
-    setPrendas((prev) => [nuevaPrenda, ...prev]);
+      /* ---------------------------------------------
+         PASO 1 — USUARIO
+      --------------------------------------------- */
 
-    cerrarFormulario();
-  };
+      console.log(
+        "PASO 1: verificando usuario..."
+      );
 
-  const eliminarPrenda = (id) => {
-    const confirmar = window.confirm(
-      "¿Quieres eliminar esta prenda de tu armario?"
-    );
+      const {
+        data: usuarioData,
+        error: usuarioError,
+      } = await supabase.auth.getUser();
 
-    if (!confirmar) return;
+      if (usuarioError) {
+        console.error(
+          "ERROR PASO 1:",
+          usuarioError
+        );
 
-    setPrendas((prev) =>
-      prev.filter((prenda) => prenda.id !== id)
-    );
+        throw new Error(
+          `PASO 1 - Error obteniendo usuario: ${
+            usuarioError.message ||
+            "Error desconocido"
+          }`
+        );
+      }
 
-    setSeleccionesLook((prev) => {
-      const nuevas = { ...prev };
+      if (!usuarioData?.user) {
+        throw new Error(
+          "PASO 1 - No hay un usuario autenticado."
+        );
+      }
 
-      Object.keys(nuevas).forEach((cat) => {
-        if (nuevas[cat]?.id === id) {
-          nuevas[cat] = null;
-        }
-      });
+      const usuarioId =
+        usuarioData.user.id;
 
-      return nuevas;
-    });
+      console.log(
+        "Usuario encontrado:",
+        usuarioId
+      );
 
-    setPrendaSeleccionada(null);
-  };
+      /* ---------------------------------------------
+         PASO 2 — CONVERTIR FOTO
+      --------------------------------------------- */
 
-  const alternarFavorita = (id) => {
-    setPrendas((prev) =>
-      prev.map((prenda) =>
-        prenda.id === id
-          ? {
-              ...prenda,
-              favorita: !prenda.favorita,
-            }
-          : prenda
-      )
-    );
-  };
+      console.log(
+        "PASO 2: preparando foto..."
+      );
 
-  const prendasFiltradas = useMemo(() => {
-    if (categoriaActiva === "Todo") {
-      return prendas;
+      const respuestaFoto =
+        await fetch(foto);
+
+      if (!respuestaFoto.ok) {
+        throw new Error(
+          `PASO 2 - No se pudo preparar la foto. Estado: ${respuestaFoto.status}`
+        );
+      }
+
+      const blobFoto =
+        await respuestaFoto.blob();
+
+      console.log(
+        "Foto preparada:",
+        blobFoto.size,
+        "bytes"
+      );
+
+      /* ---------------------------------------------
+         PASO 3 — STORAGE
+      --------------------------------------------- */
+
+      console.log(
+        "PASO 3: subiendo foto a Storage..."
+      );
+
+      const imagePath =
+        `${usuarioId}/${crypto.randomUUID()}.jpg`;
+
+      console.log(
+        "Ruta de Storage:",
+        imagePath
+      );
+
+      const {
+        data: storageData,
+        error: errorUpload,
+      } = await supabase.storage
+        .from("prendas")
+        .upload(
+          imagePath,
+          blobFoto,
+          {
+            contentType:
+              "image/jpeg",
+            upsert: false,
+          }
+        );
+
+      if (errorUpload) {
+        console.error(
+          "ERROR PASO 3 — STORAGE:",
+          errorUpload
+        );
+
+        throw new Error(
+          `PASO 3 - Error subiendo la foto a Storage.\n\nMensaje: ${
+            errorUpload.message ||
+            "Sin mensaje"
+          }\nCódigo: ${
+            errorUpload.statusCode ||
+            errorUpload.status ||
+            "Sin código"
+          }`
+        );
+      }
+
+      console.log(
+        "Foto subida correctamente:",
+        storageData
+      );
+
+      /* ---------------------------------------------
+         PASO 4 — TABLA PRENDAS
+      --------------------------------------------- */
+
+      console.log(
+        "PASO 4: guardando registro en public.prendas..."
+      );
+
+      const {
+        data: filaNueva,
+        error: errorInsert,
+      } = await supabase
+        .from("prendas")
+        .insert({
+          user_id: usuarioId,
+          nombre:
+            nombre.trim(),
+          categoria,
+          color,
+          estilo,
+          favorita,
+          image_path:
+            imagePath,
+        })
+        .select()
+        .single();
+
+      if (errorInsert) {
+        console.error(
+          "ERROR PASO 4 — TABLA PRENDAS:",
+          errorInsert
+        );
+
+        /*
+         * Si la foto sí alcanzó a subir,
+         * intentamos eliminarla porque
+         * el registro no se pudo crear.
+         */
+
+        await supabase.storage
+          .from("prendas")
+          .remove([
+            imagePath,
+          ]);
+
+        throw new Error(
+          `PASO 4 - Error guardando la prenda en la tabla.\n\nMensaje: ${
+            errorInsert.message ||
+            "Sin mensaje"
+          }\nCódigo: ${
+            errorInsert.code ||
+            "Sin código"
+          }\nDetalles: ${
+            errorInsert.details ||
+            "Sin detalles"
+          }\nSugerencia: ${
+            errorInsert.hint ||
+            "Sin sugerencia"
+          }`
+        );
+      }
+
+      console.log(
+        "Registro creado correctamente:",
+        filaNueva
+      );
+
+      /* ---------------------------------------------
+         PASO 5 — URL DE LA FOTO
+      --------------------------------------------- */
+
+      console.log(
+        "PASO 5: generando URL de la foto..."
+      );
+
+      const fotoUrl =
+        await crearUrlFoto(
+          imagePath
+        );
+
+      if (!fotoUrl) {
+        console.warn(
+          "La prenda se guardó, pero no se pudo generar la URL de visualización."
+        );
+      }
+
+      /* ---------------------------------------------
+         PASO 6 — ACTUALIZAR INTERFAZ
+      --------------------------------------------- */
+
+      const nuevaPrenda = {
+        id: filaNueva.id,
+        nombre:
+          filaNueva.nombre,
+        categoria:
+          filaNueva.categoria,
+        color:
+          filaNueva.color || "",
+        estilo:
+          filaNueva.estilo || "",
+        favorita:
+          Boolean(
+            filaNueva.favorita
+          ),
+        foto: fotoUrl,
+        imagePath:
+          imagePath,
+        fecha:
+          filaNueva.created_at,
+      };
+
+      setPrendas(
+        (prev) => [
+          nuevaPrenda,
+          ...prev,
+        ]
+      );
+
+      cerrarFormulario();
+
+      console.log(
+        "========== PRENDA GUARDADA CORRECTAMENTE =========="
+      );
+    } catch (error) {
+      console.error(
+        "========== ERROR FINAL VESTELLE =========="
+      );
+
+      console.error(
+        error
+      );
+
+      alert(
+        error?.message ||
+          "No pudimos guardar la prenda."
+      );
     }
-
-    return prendas.filter(
-      (prenda) => prenda.categoria === categoriaActiva
-    );
-  }, [prendas, categoriaActiva]);
+  };
 
   /* =====================================================
-     CONSTRUCTOR DE LOOK
+     FAVORITA
   ===================================================== */
 
-  const seleccionarParaLook = (categoriaLook, prenda) => {
-    setSeleccionesLook((prev) => ({
-      ...prev,
-      [categoriaLook]:
-        prev[categoriaLook]?.id === prenda.id
-          ? null
-          : prenda,
-    }));
+  const alternarFavorita =
+    async (id) => {
+      const prenda =
+        prendas.find(
+          (item) =>
+            item.id === id
+        );
+
+      if (!prenda) return;
+
+      const nuevaFavorita =
+        !prenda.favorita;
+
+      const {
+        error,
+      } = await supabase
+        .from("prendas")
+        .update({
+          favorita:
+            nuevaFavorita,
+        })
+        .eq("id", id);
+
+      if (error) {
+        console.error(
+          "ERROR ACTUALIZANDO FAVORITA:",
+          error
+        );
+
+        alert(
+          `No pudimos actualizar la favorita.\n\n${error.message}`
+        );
+
+        return;
+      }
+
+      setPrendas(
+        (prev) =>
+          prev.map(
+            (item) =>
+              item.id === id
+                ? {
+                    ...item,
+                    favorita:
+                      nuevaFavorita,
+                  }
+                : item
+          )
+      );
+
+      if (
+        prendaSeleccionada?.id ===
+        id
+      ) {
+        setPrendaSeleccionada(
+          (actual) =>
+            actual
+              ? {
+                  ...actual,
+                  favorita:
+                    nuevaFavorita,
+                }
+              : actual
+        );
+      }
+    };
+
+  /* =====================================================
+     ELIMINAR PRENDA
+  ===================================================== */
+
+  const eliminarPrenda =
+    async (id) => {
+      const confirmar =
+        window.confirm(
+          "¿Quieres eliminar esta prenda de tu armario?"
+        );
+
+      if (!confirmar) return;
+
+      const prenda =
+        prendas.find(
+          (item) =>
+            item.id === id
+        );
+
+      const {
+        error,
+      } = await supabase
+        .from("prendas")
+        .delete()
+        .eq("id", id);
+
+      if (error) {
+        console.error(
+          "ERROR ELIMINANDO PRENDA:",
+          error
+        );
+
+        alert(
+          `No pudimos eliminar la prenda.\n\n${error.message}`
+        );
+
+        return;
+      }
+
+      if (
+        prenda?.imagePath
+      ) {
+        const {
+          error: errorFoto,
+        } = await supabase.storage
+          .from("prendas")
+          .remove([
+            prenda.imagePath,
+          ]);
+
+        if (errorFoto) {
+          console.error(
+            "ERROR ELIMINANDO FOTO:",
+            errorFoto
+          );
+        }
+      }
+
+      setPrendas(
+        (prev) =>
+          prev.filter(
+            (item) =>
+              item.id !== id
+          )
+      );
+
+      setPrendaSeleccionada(
+        null
+      );
+
+      setSeleccionesLook(
+        (prev) => {
+          const nuevas = {
+            ...prev,
+          };
+
+          Object.keys(
+            nuevas
+          ).forEach(
+            (cat) => {
+              if (
+                nuevas[cat]
+                  ?.id === id
+              ) {
+                nuevas[cat] =
+                  null;
+              }
+            }
+          );
+
+          return nuevas;
+        }
+      );
+    };
+
+  /* =====================================================
+     FILTROS
+  ===================================================== */
+
+  const prendasFiltradas =
+    useMemo(() => {
+      if (
+        categoriaActiva ===
+        "Todo"
+      ) {
+        return prendas;
+      }
+
+      return prendas.filter(
+        (prenda) =>
+          prenda.categoria ===
+          categoriaActiva
+      );
+    }, [
+      prendas,
+      categoriaActiva,
+    ]);
+
+  /* =====================================================
+     LOOKS
+  ===================================================== */
+
+  const seleccionarParaLook = (
+    categoriaLook,
+    prenda
+  ) => {
+    setSeleccionesLook(
+      (prev) => ({
+        ...prev,
+        [categoriaLook]:
+          prev[categoriaLook]
+            ?.id === prenda.id
+            ? null
+            : prenda,
+      })
+    );
 
     setModoAleatorio(false);
   };
 
-  const quitarDelLook = (categoriaLook) => {
-    setSeleccionesLook((prev) => ({
-      ...prev,
-      [categoriaLook]: null,
-    }));
+  const quitarDelLook = (
+    categoriaLook
+  ) => {
+    setSeleccionesLook(
+      (prev) => ({
+        ...prev,
+        [categoriaLook]:
+          null,
+      })
+    );
   };
 
   const limpiarLook = () => {
@@ -253,134 +1060,224 @@ function App() {
     setModoAleatorio(false);
   };
 
-  const elegirAleatoriamente = () => {
-    if (prendas.length < 2) {
-      alert("Necesitas al menos 2 prendas para crear un look.");
-      return;
-    }
-
-    const porCategoria = (cat) =>
-      prendas.filter(
-        (prenda) => prenda.categoria === cat
-      );
-
-    const tops = porCategoria("Tops");
-    const pantalones = porCategoria("Pantalones");
-    const faldas = porCategoria("Faldas");
-    const vestidos = porCategoria("Vestidos");
-    const zapatos = porCategoria("Zapatos");
-    const accesorios = porCategoria("Accesorios");
-
-    const aleatorio = (lista) => {
-      if (!lista.length) return null;
-
-      return lista[
-        Math.floor(Math.random() * lista.length)
-      ];
-    };
-
-    const nuevoLook = {
-      Tops: null,
-      Pantalones: null,
-      Faldas: null,
-      Vestidos: null,
-      Zapatos: null,
-      Accesorios: null,
-    };
-
-    if (vestidos.length > 0 && Math.random() > 0.45) {
-      nuevoLook.Vestidos = aleatorio(vestidos);
-    } else {
-      if (tops.length > 0) {
-        nuevoLook.Tops = aleatorio(tops);
+  const elegirAleatoriamente =
+    () => {
+      if (prendas.length < 2) {
+        alert(
+          "Necesitas al menos 2 prendas para crear un look."
+        );
+        return;
       }
 
-      if (pantalones.length > 0 && Math.random() > 0.5) {
-        nuevoLook.Pantalones = aleatorio(pantalones);
-      } else if (faldas.length > 0) {
-        nuevoLook.Faldas = aleatorio(faldas);
-      } else if (pantalones.length > 0) {
-        nuevoLook.Pantalones = aleatorio(pantalones);
+      const porCategoria =
+        (cat) =>
+          prendas.filter(
+            (prenda) =>
+              prenda.categoria ===
+              cat
+          );
+
+      const tops =
+        porCategoria("Tops");
+
+      const pantalones =
+        porCategoria(
+          "Pantalones"
+        );
+
+      const faldas =
+        porCategoria("Faldas");
+
+      const vestidos =
+        porCategoria(
+          "Vestidos"
+        );
+
+      const zapatos =
+        porCategoria("Zapatos");
+
+      const accesorios =
+        porCategoria(
+          "Accesorios"
+        );
+
+      const aleatorio =
+        (lista) => {
+          if (!lista.length)
+            return null;
+
+          return lista[
+            Math.floor(
+              Math.random() *
+                lista.length
+            )
+          ];
+        };
+
+      const nuevoLook = {
+        Tops: null,
+        Pantalones: null,
+        Faldas: null,
+        Vestidos: null,
+        Zapatos: null,
+        Accesorios: null,
+      };
+
+      if (
+        vestidos.length > 0 &&
+        Math.random() > 0.45
+      ) {
+        nuevoLook.Vestidos =
+          aleatorio(
+            vestidos
+          );
+      } else {
+        if (
+          tops.length > 0
+        ) {
+          nuevoLook.Tops =
+            aleatorio(
+              tops
+            );
+        }
+
+        if (
+          pantalones.length >
+            0 &&
+          Math.random() > 0.5
+        ) {
+          nuevoLook.Pantalones =
+            aleatorio(
+              pantalones
+            );
+        } else if (
+          faldas.length > 0
+        ) {
+          nuevoLook.Faldas =
+            aleatorio(
+              faldas
+            );
+        } else if (
+          pantalones.length >
+          0
+        ) {
+          nuevoLook.Pantalones =
+            aleatorio(
+              pantalones
+            );
+        }
       }
-    }
 
-    if (zapatos.length > 0) {
-      nuevoLook.Zapatos = aleatorio(zapatos);
-    }
+      if (
+        zapatos.length > 0
+      ) {
+        nuevoLook.Zapatos =
+          aleatorio(
+            zapatos
+          );
+      }
 
-    if (
-      accesorios.length > 0 &&
-      Math.random() > 0.35
-    ) {
-      nuevoLook.Accesorios = aleatorio(
-        accesorios
+      if (
+        accesorios.length >
+          0 &&
+        Math.random() > 0.35
+      ) {
+        nuevoLook.Accesorios =
+          aleatorio(
+            accesorios
+          );
+      }
+
+      setSeleccionesLook(
+        nuevoLook
       );
-    }
 
-    setSeleccionesLook(nuevoLook);
-    setNombreLook("Look sorpresa");
-    setModoAleatorio(true);
-  };
+      setNombreLook(
+        "Look sorpresa"
+      );
 
-  const prendasSeleccionadas = Object.values(
-    seleccionesLook
-  ).filter(Boolean);
+      setModoAleatorio(true);
+    };
 
-  const tieneVestido =
-    Boolean(seleccionesLook.Vestidos);
+  const prendasSeleccionadas =
+    Object.values(
+      seleccionesLook
+    ).filter(Boolean);
 
   const guardarLook = () => {
-    if (prendasSeleccionadas.length < 2) {
+    if (
+      prendasSeleccionadas.length <
+      2
+    ) {
       alert(
         "Selecciona al menos 2 prendas para guardar el look."
       );
+
       return;
     }
 
     const nuevoLook = {
       id: Date.now(),
       nombre:
-        nombreLook.trim() || "Mi look",
-      prendas: prendasSeleccionadas,
-      fecha: new Date().toISOString(),
+        nombreLook.trim() ||
+        "Mi look",
+      prendas:
+        prendasSeleccionadas,
+      fecha:
+        new Date().toISOString(),
     };
 
-    setLooks((prev) => [
-      nuevoLook,
-      ...prev,
-    ]);
+    setLooks(
+      (prev) => [
+        nuevoLook,
+        ...prev,
+      ]
+    );
 
     alert(
       "¡Look guardado en tu colección! ✨"
     );
 
-    setNombreLook("");
-    setModoAleatorio(false);
+    limpiarLook();
   };
 
-  const eliminarLook = (id) => {
-    const confirmar = window.confirm(
-      "¿Quieres eliminar este look guardado?"
-    );
+  const eliminarLook = (
+    id
+  ) => {
+    const confirmar =
+      window.confirm(
+        "¿Quieres eliminar este look guardado?"
+      );
 
     if (!confirmar) return;
 
-    setLooks((prev) =>
-      prev.filter((look) => look.id !== id)
+    setLooks(
+      (prev) =>
+        prev.filter(
+          (look) =>
+            look.id !== id
+        )
     );
   };
 
   /* =====================================================
-     TABLERO NUEVO DE LOOK
+     TABLERO DE LOOK
   ===================================================== */
 
   const renderLookBoard = () => {
-    const top = seleccionesLook.Tops;
+    const top =
+      seleccionesLook.Tops;
+
     const bottom =
       seleccionesLook.Pantalones ||
       seleccionesLook.Faldas;
-    const dress = seleccionesLook.Vestidos;
-    const shoes = seleccionesLook.Zapatos;
+
+    const dress =
+      seleccionesLook.Vestidos;
+
+    const shoes =
+      seleccionesLook.Zapatos;
+
     const accessory =
       seleccionesLook.Accesorios;
 
@@ -422,15 +1319,15 @@ function App() {
         </div>
 
         <div className="board-outfit">
-
-          {/* VESTIDO */}
           {dress && (
             <div className="board-item board-dress">
               <button
                 className="board-remove"
                 type="button"
                 onClick={() =>
-                  quitarDelLook("Vestidos")
+                  quitarDelLook(
+                    "Vestidos"
+                  )
                 }
               >
                 ×
@@ -441,21 +1338,23 @@ function App() {
                 alt={dress.nombre}
               />
 
-              <span>{dress.nombre}</span>
+              <span>
+                {dress.nombre}
+              </span>
             </div>
           )}
 
-          {/* TOP + PARTE INFERIOR */}
           {!dress && (
             <div className="board-top-bottom">
-
               {top && (
                 <div className="board-item board-top">
                   <button
                     className="board-remove"
                     type="button"
                     onClick={() =>
-                      quitarDelLook("Tops")
+                      quitarDelLook(
+                        "Tops"
+                      )
                     }
                   >
                     ×
@@ -466,7 +1365,9 @@ function App() {
                     alt={top.nombre}
                   />
 
-                  <span>{top.nombre}</span>
+                  <span>
+                    {top.nombre}
+                  </span>
                 </div>
               )}
 
@@ -499,17 +1400,18 @@ function App() {
             </div>
           )}
 
-          {/* ACCESORIOS */}
-          {(shoes || accessory) && (
+          {(shoes ||
+            accessory) && (
             <div className="board-accessories">
-
               {shoes && (
                 <div className="board-item board-small">
                   <button
                     className="board-remove"
                     type="button"
                     onClick={() =>
-                      quitarDelLook("Zapatos")
+                      quitarDelLook(
+                        "Zapatos"
+                      )
                     }
                   >
                     ×
@@ -532,7 +1434,9 @@ function App() {
                     className="board-remove"
                     type="button"
                     onClick={() =>
-                      quitarDelLook("Accesorios")
+                      quitarDelLook(
+                        "Accesorios"
+                      )
                     }
                   >
                     ×
@@ -548,7 +1452,6 @@ function App() {
                   </span>
                 </div>
               )}
-
             </div>
           )}
         </div>
@@ -568,13 +1471,14 @@ function App() {
   ===================================================== */
 
   const renderInicio = () => {
-    const favoritas = prendas.filter(
-      (prenda) => prenda.favorita
-    );
+    const favoritas =
+      prendas.filter(
+        (prenda) =>
+          prenda.favorita
+      );
 
     return (
       <section className="page-section home-page">
-
         <div className="hero">
           <div className="hero-eyebrow">
             VESTELLE
@@ -594,14 +1498,15 @@ function App() {
 
           <button
             className="primary-button"
-            onClick={abrirFormulario}
+            onClick={
+              abrirFormulario
+            }
           >
             + Añadir prenda
           </button>
         </div>
 
         <div className="home-stats">
-
           <div>
             <strong>
               {prendas.length}
@@ -631,13 +1536,10 @@ function App() {
               Favoritas
             </span>
           </div>
-
         </div>
 
         <div className="home-block">
-
           <div className="section-heading">
-
             <div>
               <small>
                 TU COLECCIÓN
@@ -651,17 +1553,17 @@ function App() {
             <button
               className="text-button"
               onClick={() =>
-                setActiveTab("armario")
+                setActiveTab(
+                  "armario"
+                )
               }
             >
               Ver todo →
             </button>
-
           </div>
 
           {prendas.length === 0 ? (
             <div className="empty-state">
-
               <div className="empty-icon">
                 ♡
               </div>
@@ -677,49 +1579,56 @@ function App() {
 
               <button
                 className="secondary-button"
-                onClick={abrirFormulario}
+                onClick={
+                  abrirFormulario
+                }
               >
                 Añadir mi primera prenda
               </button>
-
             </div>
           ) : (
             <div className="mini-grid">
-
               {prendas
                 .slice(0, 4)
-                .map((prenda) => (
-                  <button
-                    className="mini-card"
-                    key={prenda.id}
-                    onClick={() =>
-                      setPrendaSeleccionada(
-                        prenda
-                      )
-                    }
-                  >
-                    <img
-                      src={prenda.foto}
-                      alt={prenda.nombre}
-                    />
+                .map(
+                  (prenda) => (
+                    <button
+                      className="mini-card"
+                      key={prenda.id}
+                      onClick={() =>
+                        setPrendaSeleccionada(
+                          prenda
+                        )
+                      }
+                    >
+                      <img
+                        src={
+                          prenda.foto
+                        }
+                        alt={
+                          prenda.nombre
+                        }
+                      />
 
-                    <span>
-                      {prenda.nombre}
-                    </span>
-                  </button>
-                ))}
-
+                      <span>
+                        {
+                          prenda.nombre
+                        }
+                      </span>
+                    </button>
+                  )
+                )}
             </div>
           )}
-
         </div>
 
         <div className="home-buttons">
-
           <button
             className="feature-card"
             onClick={() =>
-              setActiveTab("looks")
+              setActiveTab(
+                "looks"
+              )
             }
           >
             <span className="feature-icon">
@@ -738,7 +1647,9 @@ function App() {
           <button
             className="feature-card"
             onClick={() => {
-              setActiveTab("looks");
+              setActiveTab(
+                "looks"
+              );
 
               setTimeout(() => {
                 elegirAleatoriamente();
@@ -757,9 +1668,7 @@ function App() {
               Déjate sorprender
             </small>
           </button>
-
         </div>
-
       </section>
     );
   };
@@ -771,9 +1680,7 @@ function App() {
   const renderArmario = () => {
     return (
       <section className="page-section">
-
         <div className="page-header">
-
           <div>
             <small>
               TU COLECCIÓN
@@ -784,7 +1691,9 @@ function App() {
             </h1>
 
             <p>
-              {prendas.length === 0
+              {cargandoPrendas
+                ? "Cargando tu colección..."
+                : prendas.length === 0
                 ? "Todavía no tienes prendas."
                 : `${prendas.length} ${
                     prendas.length === 1
@@ -796,67 +1705,76 @@ function App() {
 
           <button
             className="primary-button"
-            onClick={abrirFormulario}
+            onClick={
+              abrirFormulario
+            }
           >
             + Añadir prenda
           </button>
-
         </div>
 
         <div className="category-tabs">
-
-          {CATEGORIAS.map((cat) => (
-            <button
-              key={cat}
-              className={
-                categoriaActiva === cat
-                  ? "active"
-                  : ""
-              }
-              onClick={() =>
-                setCategoriaActiva(cat)
-              }
-            >
-              {cat}
-            </button>
-          ))}
-
+          {CATEGORIAS.map(
+            (cat) => (
+              <button
+                key={cat}
+                className={
+                  categoriaActiva ===
+                  cat
+                    ? "active"
+                    : ""
+                }
+                onClick={() =>
+                  setCategoriaActiva(
+                    cat
+                  )
+                }
+              >
+                {cat}
+              </button>
+            )
+          )}
         </div>
 
-        {prendasFiltradas.length === 0 ? (
+        {prendasFiltradas.length ===
+        0 ? (
           <div className="empty-state">
-
             <div className="empty-icon">
               ♡
             </div>
 
             <h3>
-              No hay prendas aquí
+              {cargandoPrendas
+                ? "Cargando tu armario..."
+                : "No hay prendas aquí"}
             </h3>
 
-            <p>
-              Agrega una prenda o cambia
-              la categoría.
-            </p>
+            {!cargandoPrendas && (
+              <>
+                <p>
+                  Agrega una prenda o cambia
+                  la categoría.
+                </p>
 
-            <button
-              className="secondary-button"
-              onClick={abrirFormulario}
-            >
-              Añadir prenda
-            </button>
-
+                <button
+                  className="secondary-button"
+                  onClick={
+                    abrirFormulario
+                  }
+                >
+                  Añadir prenda
+                </button>
+              </>
+            )}
           </div>
         ) : (
           <div className="closet-grid">
-
             {prendasFiltradas.map(
               (prenda) => (
                 <article
                   className="closet-card"
                   key={prenda.id}
                 >
-
                   <button
                     className="closet-photo"
                     onClick={() =>
@@ -864,11 +1782,15 @@ function App() {
                         prenda
                       )
                     }
+                    type="button"
                   >
-
                     <img
-                      src={prenda.foto}
-                      alt={prenda.nombre}
+                      src={
+                        prenda.foto
+                      }
+                      alt={
+                        prenda.nombre
+                      }
                     />
 
                     {prenda.favorita && (
@@ -876,22 +1798,25 @@ function App() {
                         ♥
                       </span>
                     )}
-
                   </button>
 
                   <div className="closet-info">
-
                     <div>
-
                       <h3>
-                        {prenda.nombre}
+                        {
+                          prenda.nombre
+                        }
                       </h3>
 
                       <p>
-                        {prenda.color} ·{" "}
-                        {prenda.estilo}
+                        {
+                          prenda.color
+                        }{" "}
+                        ·{" "}
+                        {
+                          prenda.estilo
+                        }
                       </p>
-
                     </div>
 
                     <button
@@ -907,16 +1832,12 @@ function App() {
                         ? "♥"
                         : "♡"}
                     </button>
-
                   </div>
-
                 </article>
               )
             )}
-
           </div>
         )}
-
       </section>
     );
   };
@@ -926,13 +1847,10 @@ function App() {
   ===================================================== */
 
   const renderLooks = () => {
-
     if (prendas.length < 2) {
       return (
         <section className="page-section">
-
           <div className="page-header">
-
             <div>
               <small>
                 VESTELLE
@@ -947,11 +1865,9 @@ function App() {
                 armario.
               </p>
             </div>
-
           </div>
 
           <div className="empty-state">
-
             <div className="empty-icon">
               ✦
             </div>
@@ -967,22 +1883,20 @@ function App() {
 
             <button
               className="primary-button"
-              onClick={abrirFormulario}
+              onClick={
+                abrirFormulario
+              }
             >
               + Añadir prenda
             </button>
-
           </div>
-
         </section>
       );
     }
 
     return (
       <section className="page-section looks-page">
-
         <div className="page-header">
-
           <div>
             <small>
               VESTELLE
@@ -997,31 +1911,31 @@ function App() {
               crear una nueva historia.
             </p>
           </div>
-
         </div>
 
         <div className="look-actions">
-
           <button
             className="secondary-button"
-            onClick={elegirAleatoriamente}
+            onClick={
+              elegirAleatoriamente
+            }
           >
             ✦ Elige por mí
           </button>
 
           <button
             className="text-button"
-            onClick={limpiarLook}
+            onClick={
+              limpiarLook
+            }
           >
             Limpiar
           </button>
-
         </div>
 
         {renderLookBoard()}
 
         <div className="look-save-area">
-
           <label>
             Nombre de tu look
           </label>
@@ -1039,17 +1953,16 @@ function App() {
 
           <button
             className="primary-button full-width"
-            onClick={guardarLook}
+            onClick={
+              guardarLook
+            }
           >
             Guardar look
           </button>
-
         </div>
 
         <div className="selection-section">
-
           <div className="section-heading">
-
             <div>
               <small>
                 ELIGE TUS PRENDAS
@@ -1059,16 +1972,15 @@ function App() {
                 Mi colección
               </h2>
             </div>
-
           </div>
 
           {CATEGORIAS_LOOK.map(
             (cat) => {
-
               const prendasCategoria =
                 prendas.filter(
                   (prenda) =>
-                    prenda.categoria === cat
+                    prenda.categoria ===
+                    cat
                 );
 
               if (
@@ -1082,9 +1994,7 @@ function App() {
                   className="look-category"
                   key={cat}
                 >
-
                   <div className="look-category-title">
-
                     <h3>
                       {cat}
                     </h3>
@@ -1096,14 +2006,11 @@ function App() {
                         Seleccionado
                       </span>
                     )}
-
                   </div>
 
                   <div className="selection-grid">
-
                     {prendasCategoria.map(
                       (prenda) => {
-
                         const seleccionada =
                           seleccionesLook[
                             cat
@@ -1112,7 +2019,9 @@ function App() {
 
                         return (
                           <button
-                            key={prenda.id}
+                            key={
+                              prenda.id
+                            }
                             className={`selection-card ${
                               seleccionada
                                 ? "selected"
@@ -1124,8 +2033,8 @@ function App() {
                                 prenda
                               )
                             }
+                            type="button"
                           >
-
                             <img
                               src={
                                 prenda.foto
@@ -1142,28 +2051,24 @@ function App() {
                             )}
 
                             <small>
-                              {prenda.nombre}
+                              {
+                                prenda.nombre
+                              }
                             </small>
-
                           </button>
                         );
                       }
                     )}
-
                   </div>
-
                 </div>
               );
             }
           )}
-
         </div>
 
         {looks.length > 0 && (
           <div className="saved-looks">
-
             <div className="section-heading">
-
               <div>
                 <small>
                   TUS CREACIONES
@@ -1173,74 +2078,72 @@ function App() {
                   Looks guardados
                 </h2>
               </div>
-
             </div>
 
-            {looks.map((look) => (
-              <article
-                className="saved-look"
-                key={look.id}
-              >
+            {looks.map(
+              (look) => (
+                <article
+                  className="saved-look"
+                  key={look.id}
+                >
+                  <div className="saved-look-header">
+                    <div>
+                      <small>
+                        LOOK
+                      </small>
 
-                <div className="saved-look-header">
+                      <h3>
+                        {
+                          look.nombre
+                        }
+                      </h3>
+                    </div>
 
-                  <div>
-                    <small>
-                      LOOK
-                    </small>
-
-                    <h3>
-                      {look.nombre}
-                    </h3>
+                    <button
+                      className="delete-button"
+                      onClick={() =>
+                        eliminarLook(
+                          look.id
+                        )
+                      }
+                      type="button"
+                    >
+                      Eliminar
+                    </button>
                   </div>
 
-                  <button
-                    className="delete-button"
-                    onClick={() =>
-                      eliminarLook(
-                        look.id
+                  <div className="saved-look-grid">
+                    {look.prendas.map(
+                      (prenda) => (
+                        <div
+                          className="saved-look-item"
+                          key={
+                            prenda.id
+                          }
+                        >
+                          <img
+                            src={
+                              prenda.foto
+                            }
+                            alt={
+                              prenda.nombre
+                            }
+                          />
+
+                          <span>
+                            {
+                              prenda.nombre
+                            }
+                          </span>
+                        </div>
                       )
-                    }
-                  >
-                    Eliminar
-                  </button>
-
-                </div>
-
-                <div className="saved-look-grid">
-
-                  {look.prendas.map(
-                    (prenda) => (
-                      <div
-                        className="saved-look-item"
-                        key={prenda.id}
-                      >
-
-                        <img
-                          src={
-                            prenda.foto
-                          }
-                          alt={
-                            prenda.nombre
-                          }
-                        />
-
-                        <span>
-                          {prenda.nombre}
-                        </span>
-
-                      </div>
-                    )
-                  )}
-
-                </div>
-
-              </article>
-            ))}
-
+                    )}
+                  </div>
+                </article>
+              )
+            )}
           </div>
         )}
-
       </section>
     );
   };
@@ -1249,164 +2152,138 @@ function App() {
      CALENDARIO
   ===================================================== */
 
-  const renderCalendario = () => {
-    return (
-      <section className="page-section">
+  const renderCalendario = () => (
+    <section className="page-section">
+      <div className="page-header">
+        <div>
+          <small>
+            ORGANIZA TU ESTILO
+          </small>
 
-        <div className="page-header">
-
-          <div>
-            <small>
-              ORGANIZA TU ESTILO
-            </small>
-
-            <h1>
-              Calendario
-            </h1>
-
-            <p>
-              Próximamente podrás planear
-              tus looks.
-            </p>
-          </div>
-
-        </div>
-
-        <div className="coming-soon">
-
-          <div className="coming-soon-icon">
-            ♧
-          </div>
-
-          <h2>
-            Tu estilo, día a día
-          </h2>
+          <h1>
+            Calendario
+          </h1>
 
           <p>
-            Aquí podrás organizar qué look
-            usar cada día, guardar tu
-            historial y descubrir cuáles
-            son tus prendas favoritas.
+            Próximamente podrás planear
+            tus looks.
           </p>
+        </div>
+      </div>
 
+      <div className="coming-soon">
+        <div className="coming-soon-icon">
+          ♧
         </div>
 
-      </section>
-    );
-  };
+        <h2>
+          Tu estilo, día a día
+        </h2>
+
+        <p>
+          Aquí podrás organizar qué look
+          usar cada día, guardar tu
+          historial y descubrir cuáles
+          son tus prendas favoritas.
+        </p>
+      </div>
+    </section>
+  );
 
   /* =====================================================
      MÁS
   ===================================================== */
 
-  const renderMas = () => {
-    return (
-      <section className="page-section">
+  const renderMas = () => (
+    <section className="page-section">
+      <div className="page-header">
+        <div>
+          <small>
+            VESTELLE
+          </small>
 
-        <div className="page-header">
+          <h1>
+            Más
+          </h1>
+
+          <p>
+            Personaliza tu experiencia.
+          </p>
+        </div>
+      </div>
+
+      <div className="more-menu">
+        <div className="more-card">
+          <span>
+            ♡
+          </span>
 
           <div>
-            <small>
-              VESTELLE
-            </small>
-
-            <h1>
-              Más
-            </h1>
+            <strong>
+              Favoritos
+            </strong>
 
             <p>
-              Personaliza tu experiencia.
+              {
+                prendas.filter(
+                  (p) =>
+                    p.favorita
+                ).length
+              }{" "}
+              prendas favoritas
             </p>
           </div>
-
         </div>
 
-        <div className="more-menu">
+        <div className="more-card">
+          <span>
+            ✦
+          </span>
 
-          <div className="more-card">
+          <div>
+            <strong>
+              Mis looks
+            </strong>
 
-            <span>
-              ♡
-            </span>
-
-            <div>
-              <strong>
-                Favoritos
-              </strong>
-
-              <p>
-                {
-                  prendas.filter(
-                    (p) =>
-                      p.favorita
-                  ).length
-                }{" "}
-                prendas favoritas
-              </p>
-            </div>
-
+            <p>
+              {looks.length}{" "}
+              looks guardados
+            </p>
           </div>
-
-          <div className="more-card">
-
-            <span>
-              ✦
-            </span>
-
-            <div>
-              <strong>
-                Mis looks
-              </strong>
-
-              <p>
-                {looks.length} looks
-                guardados
-              </p>
-            </div>
-
-          </div>
-
-          <div className="more-card">
-
-            <span>
-              ⌁
-            </span>
-
-            <div>
-              <strong>
-                Vestelle
-              </strong>
-
-              <p>
-                Tu armario, tu estilo.
-              </p>
-            </div>
-
-          </div>
-
         </div>
 
-      </section>
-    );
-  };
+        <div className="more-card">
+          <span>
+            ⌁
+          </span>
+
+          <div>
+            <strong>
+              Vestelle
+            </strong>
+
+            <p>
+              Tu armario, tu estilo.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
 
   /* =====================================================
      FORMULARIO
   ===================================================== */
 
   const renderFormulario = () => {
-
     if (!mostrarFormulario) {
       return null;
     }
 
     return (
       <div className="modal-overlay">
-
         <div className="modal">
-
           <div className="modal-header">
-
             <div>
               <small>
                 NUEVA PRENDA
@@ -1419,16 +2296,16 @@ function App() {
 
             <button
               className="modal-close"
-              onClick={cerrarFormulario}
+              onClick={
+                cerrarFormulario
+              }
               type="button"
             >
               ×
             </button>
-
           </div>
 
           <label className="upload-area">
-
             {foto ? (
               <img
                 src={foto}
@@ -1455,16 +2332,14 @@ function App() {
               type="file"
               accept="image/*"
               onChange={(e) =>
-                leerImagen(
+                procesarImagen(
                   e.target.files?.[0]
                 )
               }
             />
-
           </label>
 
           <div className="form-grid">
-
             <label>
               Nombre
 
@@ -1514,14 +2389,16 @@ function App() {
                   )
                 }
               >
-                {COLORES.map((c) => (
-                  <option
-                    key={c}
-                    value={c}
-                  >
-                    {c}
-                  </option>
-                ))}
+                {COLORES.map(
+                  (c) => (
+                    <option
+                      key={c}
+                      value={c}
+                    >
+                      {c}
+                    </option>
+                  )
+                )}
               </select>
             </label>
 
@@ -1536,21 +2413,21 @@ function App() {
                   )
                 }
               >
-                {ESTILOS.map((e) => (
-                  <option
-                    key={e}
-                    value={e}
-                  >
-                    {e}
-                  </option>
-                ))}
+                {ESTILOS.map(
+                  (e) => (
+                    <option
+                      key={e}
+                      value={e}
+                    >
+                      {e}
+                    </option>
+                  )
+                )}
               </select>
             </label>
-
           </div>
 
           <label className="favorite-toggle">
-
             <input
               type="checkbox"
               checked={favorita}
@@ -1566,7 +2443,6 @@ function App() {
             </span>
 
             <div>
-
               <strong>
                 Agregar a favoritos
               </strong>
@@ -1575,16 +2451,15 @@ function App() {
                 Podrás encontrarla fácilmente
                 después.
               </small>
-
             </div>
-
           </label>
 
           <div className="modal-actions">
-
             <button
               className="secondary-button"
-              onClick={cerrarFormulario}
+              onClick={
+                cerrarFormulario
+              }
               type="button"
             >
               Cancelar
@@ -1592,16 +2467,15 @@ function App() {
 
             <button
               className="primary-button"
-              onClick={guardarPrenda}
+              onClick={
+                guardarPrenda
+              }
               type="button"
             >
               Guardar prenda
             </button>
-
           </div>
-
         </div>
-
       </div>
     );
   };
@@ -1611,7 +2485,6 @@ function App() {
   ===================================================== */
 
   const renderDetallePrenda = () => {
-
     if (!prendaSeleccionada) {
       return null;
     }
@@ -1621,9 +2494,7 @@ function App() {
 
     return (
       <div className="modal-overlay">
-
         <div className="modal detail-modal">
-
           <button
             className="modal-close"
             onClick={() =>
@@ -1637,16 +2508,13 @@ function App() {
           </button>
 
           <div className="detail-image">
-
             <img
               src={prenda.foto}
               alt={prenda.nombre}
             />
-
           </div>
 
           <div className="detail-content">
-
             <small>
               {prenda.categoria}
             </small>
@@ -1667,6 +2535,7 @@ function App() {
                   prenda.id
                 )
               }
+              type="button"
             >
               {prenda.favorita
                 ? "♥ Quitar de favoritos"
@@ -1680,30 +2549,22 @@ function App() {
                   prenda.id
                 )
               }
+              type="button"
             >
               Eliminar prenda
             </button>
-
           </div>
-
         </div>
-
       </div>
     );
   };
 
   /* =====================================================
-     NAVEGACIÓN
+     CONTENIDO
   ===================================================== */
 
-  const cambiarTab = (tab) => {
-    setActiveTab(tab);
-  };
-
   const renderContenido = () => {
-
     switch (activeTab) {
-
       case "inicio":
         return renderInicio();
 
@@ -1730,17 +2591,14 @@ function App() {
 
   return (
     <div className="app">
-
       <header className="top-header">
-
         <button
           className="brand"
           onClick={() =>
-            cambiarTab("inicio")
+            setActiveTab("inicio")
           }
           type="button"
         >
-
           <span className="brand-mark">
             V
           </span>
@@ -1748,17 +2606,17 @@ function App() {
           <span className="brand-name">
             VESTELLE
           </span>
-
         </button>
 
         <button
           className="header-add"
-          onClick={abrirFormulario}
+          onClick={
+            abrirFormulario
+          }
           type="button"
         >
           + Añadir
         </button>
-
       </header>
 
       <main>
@@ -1766,19 +2624,24 @@ function App() {
       </main>
 
       <nav className="bottom-nav">
-
         <button
           className={
-            activeTab === "inicio"
+            activeTab ===
+            "inicio"
               ? "active"
               : ""
           }
           onClick={() =>
-            cambiarTab("inicio")
+            setActiveTab(
+              "inicio"
+            )
           }
           type="button"
         >
-          <span>⌂</span>
+          <span>
+            ⌂
+          </span>
+
           <small>
             Inicio
           </small>
@@ -1786,16 +2649,22 @@ function App() {
 
         <button
           className={
-            activeTab === "armario"
+            activeTab ===
+            "armario"
               ? "active"
               : ""
           }
           onClick={() =>
-            cambiarTab("armario")
+            setActiveTab(
+              "armario"
+            )
           }
           type="button"
         >
-          <span>♧</span>
+          <span>
+            ♧
+          </span>
+
           <small>
             Armario
           </small>
@@ -1803,16 +2672,22 @@ function App() {
 
         <button
           className={
-            activeTab === "looks"
+            activeTab ===
+            "looks"
               ? "active"
               : ""
           }
           onClick={() =>
-            cambiarTab("looks")
+            setActiveTab(
+              "looks"
+            )
           }
           type="button"
         >
-          <span>✦</span>
+          <span>
+            ✦
+          </span>
+
           <small>
             Looks
           </small>
@@ -1820,16 +2695,22 @@ function App() {
 
         <button
           className={
-            activeTab === "calendario"
+            activeTab ===
+            "calendario"
               ? "active"
               : ""
           }
           onClick={() =>
-            cambiarTab("calendario")
+            setActiveTab(
+              "calendario"
+            )
           }
           type="button"
         >
-          <span>□</span>
+          <span>
+            □
+          </span>
+
           <small>
             Calendario
           </small>
@@ -1837,26 +2718,28 @@ function App() {
 
         <button
           className={
-            activeTab === "mas"
+            activeTab ===
+            "mas"
               ? "active"
               : ""
           }
           onClick={() =>
-            cambiarTab("mas")
+            setActiveTab("mas")
           }
           type="button"
         >
-          <span>•••</span>
+          <span>
+            •••
+          </span>
+
           <small>
             Más
           </small>
         </button>
-
       </nav>
 
       {renderFormulario()}
       {renderDetallePrenda()}
-
     </div>
   );
 }
