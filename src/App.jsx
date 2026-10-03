@@ -113,6 +113,7 @@ function App() {
 
 
   const [looks, setLooks] = useState([]);
+  const [lookEditando, setLookEditando] = useState(null);
 
   const [categoriaActiva, setCategoriaActiva] = useState("Todo");
 
@@ -2601,6 +2602,104 @@ function App() {
     }
   };
 
+  const abrirEditorLook = (look) => {
+    const nuevasSelecciones = {
+      Tops: null,
+      Pantalones: null,
+      Faldas: null,
+      Vestidos: null,
+      Zapatos: null,
+      Accesorios: null,
+    };
+
+    look.prendas.forEach((prenda) => {
+      if (Object.prototype.hasOwnProperty.call(nuevasSelecciones, prenda.categoria)) {
+        nuevasSelecciones[prenda.categoria] = { ...prenda };
+      }
+    });
+
+    setLookEditando(look);
+    setSeleccionesLook(nuevasSelecciones);
+    setNombreLook(look.nombre || "Mi look");
+    setModoAleatorio(false);
+  };
+
+  const cancelarEdicionLook = () => {
+    setLookEditando(null);
+    limpiarLook();
+  };
+
+  const guardarEdicionLook = async () => {
+    if (!lookEditando) return;
+
+    if (prendasSeleccionadas.length < 2) {
+      alert("Selecciona al menos 2 prendas para guardar el look.");
+      return;
+    }
+
+    try {
+      const nombreActualizado = nombreLook.trim() || "Mi look";
+
+      const { error: errorLook } = await supabase
+        .from("looks")
+        .update({ nombre: nombreActualizado })
+        .eq("id", lookEditando.id);
+
+      if (errorLook) throw errorLook;
+
+      const { error: errorEliminarRelaciones } = await supabase
+        .from("look_prendas")
+        .delete()
+        .eq("look_id", lookEditando.id);
+
+      if (errorEliminarRelaciones) throw errorEliminarRelaciones;
+
+      const { data: usuarioData, error: usuarioError } =
+        await supabase.auth.getUser();
+
+      if (usuarioError) throw usuarioError;
+      if (!usuarioData?.user) {
+        throw new Error("No hay un usuario autenticado.");
+      }
+
+      const relaciones = prendasSeleccionadas.map((prenda) => ({
+        user_id: usuarioData.user.id,
+        look_id: lookEditando.id,
+        prenda_id: prenda.id,
+      }));
+
+      const { error: errorRelaciones } = await supabase
+        .from("look_prendas")
+        .insert(relaciones);
+
+      if (errorRelaciones) throw errorRelaciones;
+
+      setLooks((prev) =>
+        prev.map((look) =>
+          look.id === lookEditando.id
+            ? {
+                ...look,
+                nombre: nombreActualizado,
+                prendas: prendasSeleccionadas.map((prenda) => ({ ...prenda })),
+              }
+            : look
+        )
+      );
+
+      alert("¡Look actualizado! ✨");
+      setLookEditando(null);
+      limpiarLook();
+    } catch (error) {
+      console.error("ERROR ACTUALIZANDO LOOK EN SUPABASE:", error);
+
+      alert(
+        `No pudimos actualizar el look.\n\n${
+          error?.message || "Error desconocido"
+        }`
+      );
+    }
+  };
+
   /* =====================================================
 
      TABLERO DE LOOK
@@ -4003,6 +4102,67 @@ function App() {
 
 
 
+        <style>{`
+          .saved-looks { margin-top: 34px; padding-top: 30px; border-top: 1px solid rgba(73,61,57,.12); }
+          .saved-looks .section-heading { margin-bottom: 18px; }
+          .saved-looks .section-heading small { display:block; margin-bottom:5px; color:#8B7971; font-size:10px; letter-spacing:.18em; font-weight:700; }
+          .saved-looks .section-heading h2 { margin:0; color:#493D39; }
+          .saved-look { position:relative; margin:0 0 20px; padding:18px; overflow:hidden; border:1px solid rgba(73,61,57,.10); border-radius:24px; background:linear-gradient(145deg,#fffaf5 0%,#f8f1e8 100%); box-shadow:0 12px 30px rgba(73,61,57,.08); cursor:pointer; transition:transform .2s ease, box-shadow .2s ease; }
+          .saved-look:hover { transform:translateY(-2px); box-shadow:0 16px 34px rgba(73,61,57,.12); }
+          .saved-look::before { content:""; position:absolute; top:0; left:0; right:0; height:4px; background:#C88F93; }
+          .saved-look-header { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-bottom:16px; }
+          .saved-look-header small { color:#C88F93; font-size:9px; letter-spacing:.18em; font-weight:800; }
+          .saved-look-header h3 { margin:4px 0 0; color:#493D39; font-family:Georgia,serif; font-size:22px; font-weight:500; }
+          .saved-look-actions { display:flex; align-items:center; gap:8px; flex-shrink:0; }
+          .saved-look .edit-button, .saved-look .delete-button { padding:8px 12px; border:1px solid rgba(73,61,57,.14); border-radius:999px; background:rgba(255,255,255,.72); color:#8B7971; font-size:11px; }
+          .saved-look .edit-button { color:#493D39; }
+          .saved-look-editor { margin:0 0 24px; padding:20px; border:1px solid rgba(200,143,147,.35); border-radius:24px; background:#fffaf5; box-shadow:0 10px 28px rgba(73,61,57,.07); }
+          .saved-look-editor small { display:block; margin-bottom:6px; color:#C88F93; font-size:9px; letter-spacing:.18em; font-weight:800; }
+          .saved-look-editor h3 { margin:0 0 14px; color:#493D39; font-family:Georgia,serif; font-size:24px; font-weight:500; }
+          .saved-look-editor input { width:100%; box-sizing:border-box; margin-bottom:14px; }
+          .saved-look-editor-actions { display:flex; gap:10px; }
+          .saved-look-editor-actions button { flex:1; }
+          .saved-look-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; }
+          .saved-look-item { min-width:0; overflow:hidden; border:1px solid rgba(73,61,57,.08); border-radius:16px; background:#fffdf9; }
+          .saved-look-item img, .saved-look-image-placeholder { display:block; width:100%; height:150px; object-fit:cover; background:#eadbd2; }
+          .saved-look-image-placeholder { display:flex; align-items:center; justify-content:center; color:#C88F93; font-size:28px; }
+          .saved-look-item > span { display:block; padding:9px 10px 11px; overflow:hidden; color:#493D39; font-size:11px; line-height:1.25; text-overflow:ellipsis; white-space:nowrap; }
+          @media (max-width:480px) { .saved-look { padding:15px; border-radius:21px; } .saved-look-grid { gap:8px; } .saved-look-item img, .saved-look-image-placeholder { height:132px; } .saved-look-header h3 { font-size:20px; } .saved-look-header { align-items:flex-start; } .saved-look-actions { flex-direction:column; align-items:stretch; } .saved-look .edit-button, .saved-look .delete-button { white-space:nowrap; } .saved-look-editor-actions { flex-direction:column; } }
+        `}</style>
+
+        {lookEditando && (
+          <div className="saved-look-editor">
+            <small>EDITAR LOOK</small>
+            <h3>Modifica tu combinación</h3>
+
+            <input
+              type="text"
+              value={nombreLook}
+              onChange={(e) => setNombreLook(e.target.value)}
+              placeholder="Nombre del look"
+            />
+
+            {renderLookBoard()}
+
+            <div className="saved-look-editor-actions">
+              <button
+                className="secondary-button"
+                type="button"
+                onClick={cancelarEdicionLook}
+              >
+                Cancelar
+              </button>
+              <button
+                className="primary-button"
+                type="button"
+                onClick={guardarEdicionLook}
+              >
+                Guardar cambios
+              </button>
+            </div>
+          </div>
+        )}
+
         {looks.length > 0 && (
 
           <div className="saved-looks">
@@ -4041,6 +4201,19 @@ function App() {
 
                   key={look.id}
 
+                  onClick={() => abrirEditorLook(look)}
+
+                  role="button"
+
+                  tabIndex={0}
+
+                  onKeyDown={(evento) => {
+                    if (evento.key === "Enter" || evento.key === " ") {
+                      evento.preventDefault();
+                      abrirEditorLook(look);
+                    }
+                  }}
+
                 >
 
                   <div className="saved-look-header">
@@ -4069,27 +4242,43 @@ function App() {
 
 
 
-                    <button
+                    <div className="saved-look-actions">
 
-                      className="delete-button"
+                      <button
 
-                      onClick={() =>
+                        className="edit-button"
 
-                        eliminarLook(
+                        onClick={(evento) => {
+                          evento.stopPropagation();
+                          abrirEditorLook(look);
+                        }}
 
-                          look.id
+                        type="button"
 
-                        )
+                      >
 
-                      }
+                        Editar
 
-                      type="button"
+                      </button>
 
-                    >
+                      <button
 
-                      Eliminar
+                        className="delete-button"
 
-                    </button>
+                        onClick={(evento) => {
+                          evento.stopPropagation();
+                          eliminarLook(look.id);
+                        }}
+
+                        type="button"
+
+                      >
+
+                        Eliminar
+
+                      </button>
+
+                    </div>
 
                   </div>
 
