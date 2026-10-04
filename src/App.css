@@ -3151,202 +3151,104 @@ main {
 
 
 /* =========================================================
-   VESTELLE — AJUSTE VISUAL V2
-   Inicio más editorial, compacto y parecido al demo
+   VESTELLE — V3
+   Recupera el aspecto limpio del diseño anterior
+   sin hacer el Inicio demasiado grande.
    ========================================================= */
 
-.app {
-  padding-bottom: 86px;
-  background:
-    radial-gradient(circle at 82% 8%, rgba(200, 143, 147, 0.055), transparent 24%),
-    var(--cream);
-}
-
+/* Cabecera */
 .top-header {
-  height: 66px;
-  padding: 0 28px;
-  background: rgba(248, 241, 232, 0.94);
-  border-bottom: 1px solid rgba(229, 217, 207, 0.72);
-}
-
-.brand {
-  gap: 9px;
-}
-
-.brand-mark {
-  width: 32px;
-  height: 32px;
-  font-size: 18px;
+  height: 68px;
+  padding: 0 30px;
 }
 
 .brand-name {
-  font-size: 17px;
-  letter-spacing: 3.5px;
+  font-size: 16px;
+  letter-spacing: 3px;
 }
 
-.header-add {
-  padding: 8px 14px;
-  border-radius: 18px;
-  font-size: 13px;
-}
-
-/* Inicio */
-
+/* Contenedor principal */
 .page-section {
-  width: min(1060px, calc(100% - 44px));
-  padding: 38px 0;
+  width: min(1040px, calc(100% - 44px));
+  padding: 42px 0;
 }
 
+/* Hero: más elegante y equilibrado */
 .hero {
-  min-height: 390px;
-  padding: 46px 7%;
-  border-radius: 24px;
-  box-shadow: 0 9px 28px rgba(73, 61, 57, 0.055);
-  background:
-    linear-gradient(
-      118deg,
-      rgba(255, 253, 251, 0.98) 0%,
-      rgba(250, 240, 233, 0.9) 65%,
-      rgba(238, 221, 213, 0.78) 100%
-    );
-}
-
-.hero::after {
-  width: 250px;
-  height: 250px;
-  right: -62px;
-  top: -58px;
-  background: rgba(200, 143, 147, 0.105);
-}
-
-.hero-eyebrow {
-  font-size: 10px;
-  letter-spacing: 2.8px;
+  min-height: 410px;
+  padding: 48px 7.5%;
+  border-radius: 26px;
+  box-shadow: 0 10px 30px rgba(73, 61, 57, 0.055);
 }
 
 .hero h1 {
-  max-width: 650px;
-  font-size: clamp(45px, 6vw, 70px);
+  max-width: 680px;
+  font-size: clamp(48px, 6.2vw, 76px);
   line-height: 0.98;
-  margin: 12px 0 18px;
+  margin: 12px 0 19px;
 }
 
 .hero p {
-  max-width: 510px;
+  max-width: 500px;
   font-size: 15px;
   line-height: 1.6;
-  margin-bottom: 23px;
+  margin-bottom: 24px;
 }
 
-.hero .primary-button {
+/* Botón principal: vuelve a verse claramente */
+.hero .primary-button,
+.primary-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
   padding: 11px 19px;
+  border: 1px solid var(--brown);
+  border-radius: 22px;
+  background: var(--brown);
+  color: #fff !important;
+  font-size: 13px;
+  font-weight: 500;
+  text-decoration: none;
+  box-shadow: 0 5px 15px rgba(73, 61, 57, 0.12);
 }
 
-/* Estadísticas más finas */
+.hero .primary-button:hover,
+.primary-button:hover {
+  background: var(--rose);
+  border-color: var(--rose);
+}
 
+/* Estadísticas */
 .home-stats {
-  margin: 20px 0 42px;
+  margin: 20px 0 38px;
 }
 
-.home-stats > div {
-  padding: 18px 15px;
-}
-
-.home-stats strong {
-  font-size: 28px;
-}
-
-.home-stats span {
-  font-size: 10px;
-}
-
-/* Bloques del inicio */
-
+/* Bloques */
 .home-block {
-  margin-bottom: 40px;
+  margin-bottom: 38px;
 }
 
 .section-heading {
-  margin-bottom: 17px;
+  margin-bottom: 16px;
 }
 
 .section-heading h2 {
-  font-size: 32px;
+  font-size: 31px;
 }
 
-.mini-grid {
-  gap: 13px;
-}
-
-.mini-card {
-  border-radius: 15px;
-  box-shadow: 0 4px 15px rgba(73, 61, 57, 0.035);
-}
-
-.mini-card img {
-  height: 185px;
-}
-
-.mini-card span {
-  padding: 11px 13px;
-  font-size: 13px;
-}
-
-.home-buttons {
-  gap: 13px;
-}
-
-.feature-card {
-  border-radius: 18px;
-  padding: 22px;
-}
-
-.feature-icon {
-  font-size: 25px;
-  margin-bottom: 12px;
-}
-
-.feature-card strong {
-  font-size: 21px;
-}
-
-/* Navegación inferior */
-
+/* Navegación */
 .bottom-nav {
   bottom: 12px;
-  width: min(560px, calc(100% - 28px));
+  width: min(570px, calc(100% - 28px));
   padding: 6px;
-  border-radius: 20px;
-  box-shadow: 0 9px 28px rgba(73, 61, 57, 0.105);
+  border-radius: 21px;
 }
 
-.bottom-nav button {
-  padding: 7px 4px;
-  border-radius: 14px;
-  gap: 2px;
-}
-
-.bottom-nav button span {
-  font-size: 18px;
-}
-
-.bottom-nav button small {
-  font-size: 9px;
-}
-
-/* Escritorio: composición más contenida */
+/* Escritorio */
 @media (min-width: 901px) {
-  .hero {
-    width: min(920px, 100%);
-    margin: 0 auto;
-  }
-
-  .home-stats {
-    width: min(920px, 100%);
-    margin-left: auto;
-    margin-right: auto;
-  }
-
+  .hero,
+  .home-stats,
   .home-block {
     width: min(920px, 100%);
     margin-left: auto;
@@ -3354,105 +3256,43 @@ main {
   }
 }
 
-/* Celular */
+/* Móvil */
 @media (max-width: 680px) {
-  .app {
-    padding-bottom: 78px;
-  }
-
   .top-header {
     height: 60px;
     padding: 0 15px;
   }
 
-  .brand {
-    gap: 8px;
-  }
-
-  .brand-mark {
-    width: 30px;
-    height: 30px;
-    font-size: 17px;
-  }
-
   .brand-name {
-    display: block;
     font-size: 14px;
-    letter-spacing: 2.8px;
-  }
-
-  .header-add {
-    padding: 7px 11px;
-    font-size: 11px;
+    letter-spacing: 2.6px;
   }
 
   .page-section {
     width: calc(100% - 24px);
-    padding: 25px 0 30px;
+    padding: 27px 0 30px;
   }
 
   .hero {
     min-height: 365px;
-    padding: 34px 25px;
+    padding: 34px 24px;
     border-radius: 21px;
   }
 
-  .hero::after {
-    width: 190px;
-    height: 190px;
-    right: -65px;
-    top: -45px;
-  }
-
   .hero h1 {
-    font-size: 48px;
-    max-width: 330px;
-    margin: 10px 0 17px;
+    font-size: 47px;
+    max-width: 340px;
   }
 
   .hero p {
     font-size: 14px;
-    line-height: 1.55;
-    max-width: 330px;
-    margin-bottom: 21px;
   }
 
-  .hero .primary-button {
-    padding: 10px 17px;
-    font-size: 13px;
-  }
-
-  .home-stats {
-    margin: 16px 0 34px;
-  }
-
-  .home-stats > div {
-    padding: 15px 6px;
-  }
-
-  .home-stats strong {
-    font-size: 23px;
-  }
-
-  .home-stats span {
-    font-size: 8px;
-    letter-spacing: 1px;
-  }
-
-  .section-heading h2 {
-    font-size: 29px;
-  }
-
-  .mini-grid {
-    gap: 10px;
-  }
-
-  .mini-card {
-    border-radius: 14px;
-  }
-
-  .mini-card img {
-    height: 155px;
+  .hero .primary-button,
+  .primary-button {
+    min-height: 40px;
+    padding: 10px 16px;
+    font-size: 12px;
   }
 
   .bottom-nav {
@@ -3461,27 +3301,9 @@ main {
     padding: 5px;
     border-radius: 18px;
   }
-
-  .bottom-nav button {
-    padding: 6px 3px;
-  }
-
-  .bottom-nav button span {
-    font-size: 17px;
-  }
-
-  .bottom-nav button small {
-    font-size: 8.5px;
-  }
 }
 
 @media (max-width: 420px) {
-  .brand-name {
-    display: block;
-    font-size: 13px;
-    letter-spacing: 2.4px;
-  }
-
   .hero {
     min-height: 350px;
     padding: 31px 22px;
@@ -3489,13 +3311,5 @@ main {
 
   .hero h1 {
     font-size: 43px;
-  }
-
-  .hero p {
-    font-size: 13.5px;
-  }
-
-  .mini-card img {
-    height: 145px;
   }
 }
