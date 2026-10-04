@@ -92,6 +92,15 @@ const CATEGORIAS_LOOK = [
 
 function App() {
 
+  useEffect(() => {
+    // Refuerza la indicación de que VESTELLE no debe ser traducida
+    // una vez que React ha montado todo el contenido de la aplicación.
+    document.documentElement.setAttribute("translate", "no");
+    document.documentElement.classList.add("notranslate");
+    document.body.setAttribute("translate", "no");
+    document.body.classList.add("notranslate");
+  }, []);
+
   const [activeTab, setActiveTab] = useState("inicio");
 
 
@@ -6065,7 +6074,7 @@ function App() {
 
   return (
 
-    <div className="app">
+    <div className="app notranslate" translate="no">
 
       <header className="top-header">
 
