@@ -9455,3 +9455,32 @@ body {
 .app main {
   background: transparent !important;
 }
+
+/* =========================================================
+   VESTELLE — RESTAURAR SOLO DETALLES VISUALES DE INICIO
+   NO modifica el fondo general.
+   NO modifica tamaños ni posiciones.
+   Recupera únicamente:
+   1. Líneas de las estadísticas.
+   2. Fondo claro y borde de las tarjetas de acción.
+   ========================================================= */
+
+/* 1. Líneas de estadísticas */
+.home-page .home-stats {
+  border-top: 1px solid rgba(73, 61, 57, 0.12) !important;
+  border-bottom: 1px solid rgba(73, 61, 57, 0.12) !important;
+}
+
+.home-page .home-stats > div {
+  border-right: 1px solid rgba(73, 61, 57, 0.12) !important;
+}
+
+.home-page .home-stats > div:last-child {
+  border-right: 0 !important;
+}
+
+/* 2. Tarjetas "Crear un look" y "Elige por mí" */
+.home-page .feature-card {
+  background: #fffdfb !important;
+  border: 1px solid rgba(73, 61, 57, 0.12) !important;
+}
