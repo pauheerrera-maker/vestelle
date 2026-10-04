@@ -3313,3 +3313,76 @@ main {
     font-size: 43px;
   }
 }
+
+
+/* =========================================================
+   VESTELLE — V4
+   Corrección específica del Inicio publicado
+   ========================================================= */
+
+/* El botón del Hero debe verse como botón */
+.hero .primary-button {
+  display: inline-flex !important;
+  width: fit-content !important;
+  position: relative !important;
+  z-index: 10 !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 42px !important;
+  padding: 11px 20px !important;
+  border: 1px solid var(--brown-dark) !important;
+  border-radius: 24px !important;
+  background: var(--brown-dark) !important;
+  color: #ffffff !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  box-shadow: 0 6px 16px rgba(73, 61, 57, 0.13) !important;
+}
+
+.hero .primary-button:hover {
+  background: var(--rose) !important;
+  border-color: var(--rose) !important;
+}
+
+/* El Hero vuelve a una proporción más parecida al demo */
+.hero {
+  min-height: 430px !important;
+  height: auto !important;
+  padding: 48px 7.5% !important;
+  overflow: hidden !important;
+}
+
+.hero > * {
+  position: relative;
+  z-index: 3;
+}
+
+.hero::before,
+.hero::after {
+  pointer-events: none;
+}
+
+/* Evita que la navegación tape demasiado el contenido */
+.bottom-nav {
+  z-index: 50 !important;
+}
+
+/* Escritorio */
+@media (min-width: 901px) {
+  .hero {
+    min-height: 430px !important;
+  }
+}
+
+/* Móvil */
+@media (max-width: 680px) {
+  .hero {
+    min-height: 365px !important;
+    padding: 34px 24px !important;
+  }
+
+  .hero .primary-button {
+    min-height: 40px !important;
+    padding: 10px 17px !important;
+  }
+}
