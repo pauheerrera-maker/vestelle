@@ -3583,3 +3583,106 @@ body {
     width: calc(100% - 18px) !important;
   }
 }
+
+
+/* =========================================================
+   VESTELLE — DEFINITIVO
+   Corrección final de capas y modal.
+   No modifica la lógica de React ni Supabase.
+   ========================================================= */
+
+/* El modal debe estar siempre por encima de absolutamente todo. */
+.modal-overlay {
+  position: fixed !important;
+  inset: 0 !important;
+  z-index: 99999 !important;
+  isolation: isolate !important;
+
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  padding: 20px !important;
+  overflow-y: auto !important;
+
+  background-color: rgba(73, 61, 57, 0.48) !important;
+  background-image: none !important;
+
+  opacity: 1 !important;
+  visibility: visible !important;
+
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/*
+  Tarjeta del modal completamente opaca.
+  Se fuerza background-color y background-image para impedir
+  que cualquier regla anterior la vuelva translúcida.
+*/
+.modal-overlay > .modal {
+  position: relative !important;
+  z-index: 100000 !important;
+
+  width: min(600px, 100%) !important;
+  max-height: 92vh !important;
+  overflow-y: auto !important;
+
+  background-color: #f8f1e8 !important;
+  background-image: none !important;
+
+  opacity: 1 !important;
+  visibility: visible !important;
+
+  border: 1px solid #e5d9cf !important;
+  border-radius: 28px !important;
+
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.22) !important;
+
+  isolation: isolate !important;
+  mix-blend-mode: normal !important;
+  filter: none !important;
+}
+
+/* El contenido interior conserva el fondo limpio del formulario. */
+.modal-overlay > .modal > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Las cajas del formulario también quedan sólidas. */
+.modal-overlay .upload-area,
+.modal-overlay .form-grid input,
+.modal-overlay .form-grid select,
+.modal-overlay .favorite-toggle,
+.modal-overlay .modal-close {
+  background-color: #fffdfb !important;
+  background-image: none !important;
+  opacity: 1 !important;
+}
+
+/* Cuando hay un modal abierto, la navegación inferior desaparece
+   para que nunca pueda atravesarlo visualmente. */
+.app:has(.modal-overlay) .bottom-nav {
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* Evita que el scroll de la página interfiera con el modal. */
+body:has(.modal-overlay) {
+  overflow: hidden !important;
+}
+
+/* En móvil, el modal mantiene el aspecto de tarjeta y cabe en pantalla. */
+@media (max-width: 680px) {
+  .modal-overlay {
+    align-items: flex-start !important;
+    padding: 14px !important;
+  }
+
+  .modal-overlay > .modal {
+    width: 100% !important;
+    max-height: calc(100vh - 28px) !important;
+    border-radius: 22px !important;
+  }
+}
