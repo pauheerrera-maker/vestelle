@@ -5258,18 +5258,6 @@ function App() {
           )}
         </div>
 
-        <p
-          style={{
-            color: "#8b7971",
-            fontSize: "13px",
-            textAlign: "center",
-            margin: "10px 0 20px",
-          }}
-        >
-          Por ahora, la planificación se guarda en este dispositivo. En el
-          siguiente paso podemos llevarla también a Supabase para que aparezca
-          en todos tus dispositivos.
-        </p>
       </section>
     );
   };

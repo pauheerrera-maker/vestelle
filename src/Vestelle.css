@@ -7610,3 +7610,1797 @@ button.primary-button {
   opacity: 0 !important;
   pointer-events: none !important;
 }
+
+
+/* =========================================================
+   VESTELLE — V6
+   Toque vintage femenino + mejor composición del Inicio.
+   Mantiene la paleta actual.
+   ========================================================= */
+
+/* Acercamos el contenido al encabezado para reducir el
+   espacio vacío superior. */
+@media (min-width: 901px) {
+  .page-section {
+    padding-top: 30px !important;
+  }
+}
+
+/* El botón Añadir del Inicio queda integrado al Hero,
+   con un acabado más femenino/editorial y sin quedar
+   escondido detrás de la navegación inferior. */
+.hero .primary-button {
+  background: #c88f93 !important;
+  background-color: #c88f93 !important;
+  border: 1px solid #c88f93 !important;
+  color: #fffdfb !important;
+  border-radius: 24px !important;
+  box-shadow: 0 5px 14px rgba(73, 61, 57, 0.10) !important;
+  margin-bottom: 72px !important;
+  letter-spacing: 0.01em;
+}
+
+.hero .primary-button:hover {
+  background: #493d39 !important;
+  background-color: #493d39 !important;
+  border-color: #493d39 !important;
+  color: #fffdfb !important;
+}
+
+/* Detalle editorial muy sutil en el Hero:
+   una pequeña marca ornamental en la esquina inferior derecha. */
+.hero::before {
+  content: "✦" !important;
+  position: absolute !important;
+  right: 34px !important;
+  bottom: 28px !important;
+  width: 34px !important;
+  height: 34px !important;
+  display: grid !important;
+  place-items: center !important;
+  border: 1px solid rgba(200, 143, 147, 0.45) !important;
+  border-radius: 50% !important;
+  color: #c88f93 !important;
+  font-family: "Playfair Display", serif !important;
+  font-size: 15px !important;
+  z-index: 1 !important;
+  opacity: 0.75 !important;
+  pointer-events: none !important;
+}
+
+/* La navegación inferior se hace un poco más delicada:
+   menos sensación de barra tecnológica y más de pieza editorial. */
+.bottom-nav {
+  background: rgba(255, 253, 251, 0.97) !important;
+  border: 1px solid rgba(200, 143, 147, 0.35) !important;
+  box-shadow: 0 10px 28px rgba(73, 61, 57, 0.10) !important;
+}
+
+.bottom-nav button {
+  color: #8b7971 !important;
+}
+
+.bottom-nav button.active,
+.bottom-nav .active {
+  color: #c88f93 !important;
+}
+
+/* Pequeño refinamiento del elemento activo para darle
+   sensación de agenda/diario vintage. */
+.bottom-nav button.active small,
+.bottom-nav .active small {
+  color: #c88f93 !important;
+  font-weight: 600 !important;
+}
+
+/* En pantallas pequeñas mantenemos el botón separado de
+   la navegación fija. */
+@media (max-width: 900px) {
+  .hero .primary-button {
+    margin-bottom: 64px !important;
+  }
+
+  .hero::before {
+    right: 20px !important;
+    bottom: 22px !important;
+    width: 30px !important;
+    height: 30px !important;
+    font-size: 13px !important;
+  }
+}
+
+@media (max-width: 680px) {
+  .page-section {
+    padding-top: 22px !important;
+  }
+
+  .hero .primary-button {
+    margin-bottom: 62px !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .hero .primary-button {
+    margin-bottom: 58px !important;
+  }
+}
+
+
+/* =========================================================
+   VESTELLE — V7
+   Vintage femenino más visible, sin cambiar la paleta.
+   Esta versión reemplaza los ajustes visuales anteriores del Inicio.
+   ========================================================= */
+
+/* Hero: más editorial, cálido y con profundidad de papel. */
+.hero {
+  min-height: 420px !important;
+  height: auto !important;
+  padding: 54px 8% !important;
+  border-radius: 32px !important;
+  background:
+    radial-gradient(circle at 88% 8%, rgba(200, 143, 147, 0.13) 0 110px, transparent 111px),
+    linear-gradient(135deg, #fffdfb 0%, #faf4ee 52%, #f1e4de 100%) !important;
+  border: 1px solid rgba(200, 143, 147, 0.28) !important;
+  box-shadow:
+    0 18px 45px rgba(73, 61, 57, 0.08),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.60) !important;
+}
+
+/* La forma rosa decorativa deja de dominar el Hero. */
+.hero::after {
+  width: 245px !important;
+  height: 245px !important;
+  right: -62px !important;
+  top: -62px !important;
+  background: rgba(200, 143, 147, 0.12) !important;
+  border: 1px solid rgba(200, 143, 147, 0.08) !important;
+  z-index: 0 !important;
+}
+
+/* Pequeño detalle vintage: doble arco en la esquina inferior. */
+.hero::before {
+  content: "✦" !important;
+  position: absolute !important;
+  right: 34px !important;
+  bottom: 28px !important;
+  width: 38px !important;
+  height: 38px !important;
+  display: grid !important;
+  place-items: center !important;
+  border: 1px solid rgba(200, 143, 147, 0.46) !important;
+  border-radius: 50% !important;
+  color: #c88f93 !important;
+  background: rgba(255, 253, 251, 0.45) !important;
+  font-family: "Playfair Display", serif !important;
+  font-size: 15px !important;
+  z-index: 2 !important;
+  opacity: 0.82 !important;
+  pointer-events: none !important;
+}
+
+/* Jerarquía tipográfica más femenina y editorial. */
+.hero .hero-eyebrow {
+  color: #c88f93 !important;
+  letter-spacing: 0.28em !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+}
+
+.hero h1 {
+  color: #493d39 !important;
+  max-width: 690px !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.045em !important;
+  line-height: 0.96 !important;
+  text-wrap: balance !important;
+}
+
+.hero p {
+  color: #8b7971 !important;
+  max-width: 520px !important;
+  font-size: 17px !important;
+  line-height: 1.7 !important;
+}
+
+/* Botón principal: rosa empolvado, más integrado con la identidad. */
+.hero .primary-button,
+.hero button.primary-button,
+button.primary-button {
+  min-width: 220px !important;
+  min-height: 52px !important;
+  padding: 13px 25px !important;
+  border-radius: 28px !important;
+  background: #c88f93 !important;
+  background-color: #c88f93 !important;
+  border: 1px solid #c88f93 !important;
+  color: #fffdfb !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.015em !important;
+  box-shadow: 0 9px 20px rgba(200, 143, 147, 0.20) !important;
+  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease !important;
+}
+
+.hero .primary-button:hover,
+.hero button.primary-button:hover,
+button.primary-button:hover {
+  background: #b97f84 !important;
+  background-color: #b97f84 !important;
+  border-color: #b97f84 !important;
+  color: #fffdfb !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 11px 23px rgba(200, 143, 147, 0.24) !important;
+}
+
+/* Navegación: más parecida a una agenda/libreta vintage. */
+.bottom-nav {
+  background: rgba(255, 253, 251, 0.98) !important;
+  border: 1px solid rgba(200, 143, 147, 0.30) !important;
+  border-radius: 26px !important;
+  box-shadow: 0 14px 34px rgba(73, 61, 57, 0.12) !important;
+  padding: 7px !important;
+}
+
+.bottom-nav button {
+  color: #8b7971 !important;
+  border-radius: 20px !important;
+  transition: background 160ms ease, color 160ms ease !important;
+}
+
+.bottom-nav button.active,
+.bottom-nav .active {
+  color: #c88f93 !important;
+  background: #ead4d4 !important;
+}
+
+.bottom-nav button.active small,
+.bottom-nav .active small {
+  color: #c88f93 !important;
+  font-weight: 600 !important;
+}
+
+/* El encabezado permanece limpio y delicado. */
+.top-header {
+  background: rgba(248, 241, 232, 0.97) !important;
+  border-bottom: 1px solid rgba(200, 143, 147, 0.22) !important;
+}
+
+.top-header .brand-mark {
+  border-color: #c88f93 !important;
+  color: #c88f93 !important;
+}
+
+.top-header .brand-name {
+  color: #493d39 !important;
+}
+
+/* El botón Añadir del encabezado continúa oculto. */
+.top-header .header-add,
+.top-header button.header-add {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Ajustes de composición en escritorio. */
+@media (min-width: 901px) {
+  .page-section {
+    width: min(1180px, calc(100% - 72px)) !important;
+    padding-top: 34px !important;
+    padding-bottom: 88px !important;
+  }
+
+  .hero {
+    min-height: 420px !important;
+    padding: 58px 9% !important;
+  }
+
+  .hero h1 {
+    font-size: clamp(58px, 5.5vw, 78px) !important;
+    margin: 14px 0 24px !important;
+  }
+
+  .hero p {
+    margin-bottom: 28px !important;
+  }
+
+  .hero .primary-button {
+    margin-bottom: 54px !important;
+  }
+}
+
+/* Tablet y móvil: conserva la misma identidad sin apretar el contenido. */
+@media (max-width: 900px) {
+  .page-section {
+    padding-top: 24px !important;
+  }
+
+  .hero {
+    min-height: 430px !important;
+    padding: 42px 28px !important;
+    border-radius: 28px !important;
+  }
+
+  .hero h1 {
+    font-size: clamp(48px, 10vw, 64px) !important;
+    margin: 14px 0 21px !important;
+  }
+
+  .hero p {
+    font-size: 16px !important;
+  }
+
+  .hero .primary-button {
+    min-width: 205px !important;
+    margin-bottom: 58px !important;
+  }
+
+  .hero::before {
+    right: 22px !important;
+    bottom: 22px !important;
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 13px !important;
+  }
+}
+
+@media (max-width: 680px) {
+  .page-section {
+    width: calc(100% - 28px) !important;
+    padding-top: 22px !important;
+    padding-bottom: 78px !important;
+  }
+
+  .hero {
+    min-height: 425px !important;
+    padding: 38px 25px !important;
+    border-radius: 25px !important;
+  }
+
+  .hero::after {
+    width: 205px !important;
+    height: 205px !important;
+    right: -55px !important;
+    top: -48px !important;
+  }
+
+  .hero .hero-eyebrow {
+    font-size: 12px !important;
+  }
+
+  .hero h1 {
+    max-width: 340px !important;
+    font-size: 50px !important;
+    line-height: 0.97 !important;
+  }
+
+  .hero p {
+    font-size: 15px !important;
+    line-height: 1.65 !important;
+  }
+
+  .hero .primary-button {
+    min-width: 195px !important;
+    min-height: 50px !important;
+    margin-bottom: 60px !important;
+  }
+
+  .bottom-nav {
+    width: calc(100% - 18px) !important;
+    border-radius: 23px !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .hero {
+    min-height: 410px !important;
+    padding: 34px 22px !important;
+  }
+
+  .hero h1 {
+    font-size: 45px !important;
+  }
+
+  .hero .primary-button {
+    min-width: 188px !important;
+    margin-bottom: 56px !important;
+  }
+}
+
+
+/* =========================================================
+   VESTELLE — V8
+   Refinamiento visual vintage / editorial.
+   Solo presentación: no modifica la lógica.
+   ========================================================= */
+
+/* Más aire editorial y menos sensación de "tarjeta gigante". */
+@media (min-width: 901px) {
+  .page-section {
+    width: min(1120px, calc(100% - 72px)) !important;
+    padding: 30px 0 96px !important;
+  }
+
+  .hero {
+    min-height: 390px !important;
+    height: 390px !important;
+    padding: 48px 7% !important;
+    border-radius: 28px !important;
+  }
+
+  .hero h1 {
+    max-width: 620px !important;
+    font-size: clamp(54px, 5.4vw, 70px) !important;
+    line-height: 0.96 !important;
+    margin: 10px 0 22px !important;
+    color: #493d39 !important;
+  }
+
+  .hero p {
+    max-width: 470px !important;
+    font-size: 16px !important;
+    line-height: 1.65 !important;
+    color: #8b7971 !important;
+    margin-bottom: 22px !important;
+  }
+
+  .hero .primary-button,
+  .hero button.primary-button {
+    min-width: 220px !important;
+    min-height: 48px !important;
+    padding: 12px 24px !important;
+    margin-top: 4px !important;
+    margin-bottom: 0 !important;
+    border-radius: 26px !important;
+    background: #c88f93 !important;
+    background-color: #c88f93 !important;
+    border: 1px solid #c88f93 !important;
+    color: #fffdfb !important;
+    box-shadow: 0 7px 18px rgba(73, 61, 57, 0.12) !important;
+    letter-spacing: 0.015em !important;
+  }
+
+  .hero .primary-button:hover,
+  .hero button.primary-button:hover {
+    background: #b97f84 !important;
+    background-color: #b97f84 !important;
+    border-color: #b97f84 !important;
+  }
+
+  /* Círculo decorativo más suave y desplazado para parecer
+     un elemento de composición editorial. */
+  .hero::after {
+    width: 300px !important;
+    height: 300px !important;
+    right: -72px !important;
+    top: -82px !important;
+    background: rgba(200, 143, 147, 0.115) !important;
+    border: 1px solid rgba(200, 143, 147, 0.18) !important;
+  }
+
+  /* Ornamento discreto. */
+  .hero::before {
+    content: "✦" !important;
+    position: absolute !important;
+    right: 42px !important;
+    bottom: 38px !important;
+    width: 32px !important;
+    height: 32px !important;
+    display: grid !important;
+    place-items: center !important;
+    border: 1px solid rgba(200, 143, 147, 0.42) !important;
+    border-radius: 50% !important;
+    color: #c88f93 !important;
+    font-family: Georgia, serif !important;
+    font-size: 13px !important;
+    opacity: 0.72 !important;
+    pointer-events: none !important;
+  }
+}
+
+/* Navegación: más fina y tipo agenda editorial. */
+.bottom-nav {
+  background: rgba(255, 253, 251, 0.975) !important;
+  border: 1px solid rgba(200, 143, 147, 0.30) !important;
+  box-shadow: 0 8px 24px rgba(73, 61, 57, 0.10) !important;
+}
+
+.bottom-nav button {
+  color: #8b7971 !important;
+}
+
+.bottom-nav button.active,
+.bottom-nav .active {
+  color: #c88f93 !important;
+}
+
+/* Tablet / móvil: reducimos altura para que el contenido respire. */
+@media (max-width: 900px) {
+  .page-section {
+    width: calc(100% - 32px) !important;
+    padding: 30px 0 96px !important;
+  }
+
+  .hero {
+    min-height: 520px !important;
+    height: 520px !important;
+    padding: 42px 30px !important;
+    border-radius: 27px !important;
+  }
+
+  .hero h1 {
+    max-width: 560px !important;
+    font-size: clamp(48px, 9vw, 62px) !important;
+    line-height: 0.97 !important;
+    margin: 12px 0 22px !important;
+    color: #493d39 !important;
+  }
+
+  .hero p {
+    font-size: 16px !important;
+    line-height: 1.6 !important;
+    margin-bottom: 20px !important;
+    color: #8b7971 !important;
+  }
+
+  .hero .primary-button,
+  .hero button.primary-button {
+    min-width: 210px !important;
+    min-height: 48px !important;
+    margin-top: 4px !important;
+    margin-bottom: 0 !important;
+  }
+
+  .hero::after {
+    width: 250px !important;
+    height: 250px !important;
+    right: -72px !important;
+    top: -58px !important;
+  }
+
+  .hero::before {
+    right: 26px !important;
+    bottom: 28px !important;
+  }
+}
+
+@media (max-width: 680px) {
+  .page-section {
+    width: calc(100% - 24px) !important;
+    padding: 24px 0 92px !important;
+  }
+
+  .hero {
+    min-height: 470px !important;
+    height: 470px !important;
+    padding: 34px 28px !important;
+    border-radius: 25px !important;
+  }
+
+  .hero h1 {
+    max-width: 350px !important;
+    font-size: 49px !important;
+    line-height: 0.98 !important;
+    margin: 12px 0 20px !important;
+  }
+
+  .hero p {
+    max-width: 330px !important;
+    font-size: 15px !important;
+    line-height: 1.6 !important;
+    margin-bottom: 18px !important;
+  }
+
+  .hero .primary-button,
+  .hero button.primary-button {
+    min-width: 205px !important;
+    min-height: 47px !important;
+    padding: 11px 20px !important;
+  }
+
+  .hero::after {
+    width: 215px !important;
+    height: 215px !important;
+    right: -62px !important;
+    top: -48px !important;
+  }
+
+  .hero::before {
+    right: 22px !important;
+    bottom: 22px !important;
+    width: 28px !important;
+    height: 28px !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .hero {
+    min-height: 445px !important;
+    height: 445px !important;
+    padding: 31px 24px !important;
+  }
+
+  .hero h1 {
+    font-size: 45px !important;
+  }
+
+  .hero p {
+    font-size: 14px !important;
+  }
+
+  .hero .primary-button,
+  .hero button.primary-button {
+    min-width: 190px !important;
+  }
+}
+
+
+/* =========================================================
+   VESTELLE — V9
+   Editorial vintage: composición más equilibrada.
+   Solo presentación; no modifica la lógica.
+   ========================================================= */
+
+/* El Hero deja de sentirse como una tarjeta que ocupa toda
+   la pantalla y permite una composición más editorial. */
+@media (min-width: 901px) {
+  .hero {
+    min-height: 390px !important;
+    height: 390px !important;
+    padding-left: 8% !important;
+    padding-right: 8% !important;
+  }
+
+  /* Decoración de moda en el lado derecho:
+     silueta lineal abstracta, muy sutil. */
+  .hero::after {
+    content: "" !important;
+    width: 350px !important;
+    height: 350px !important;
+    right: 8% !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    border-radius: 50% !important;
+    background:
+      radial-gradient(
+        circle at center,
+        rgba(200, 143, 147, 0.16) 0 31%,
+        transparent 31.5%
+      ),
+      radial-gradient(
+        ellipse at 50% 48%,
+        transparent 0 42%,
+        rgba(200, 143, 147, 0.14) 42.5% 43%,
+        transparent 43.5%
+      ) !important;
+    border: 0 !important;
+    opacity: 1 !important;
+    pointer-events: none !important;
+  }
+
+  /* Pequeña línea editorial, como una ilustración de moda. */
+  .hero::before {
+    content: "" !important;
+    position: absolute !important;
+    right: calc(8% + 42px) !important;
+    bottom: 56px !important;
+    width: 90px !important;
+    height: 1px !important;
+    background: rgba(200, 143, 147, 0.48) !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    opacity: 1 !important;
+    pointer-events: none !important;
+  }
+
+  /* El contenido se mantiene claramente delante de la decoración. */
+  .hero > * {
+    position: relative !important;
+    z-index: 4 !important;
+  }
+
+  /* Navegación como pieza flotante independiente. */
+  .bottom-nav {
+    bottom: 18px !important;
+    width: min(900px, calc(100% - 120px)) !important;
+    padding: 7px !important;
+    border-radius: 28px !important;
+    background: rgba(255, 253, 251, 0.985) !important;
+    border: 1px solid rgba(200, 143, 147, 0.28) !important;
+    box-shadow: 0 12px 30px rgba(73, 61, 57, 0.12) !important;
+  }
+}
+
+/* Tablet: mantiene la decoración, pero más discreta. */
+@media (max-width: 900px) {
+  .hero::after {
+    content: "" !important;
+    width: 245px !important;
+    height: 245px !important;
+    right: -50px !important;
+    top: 34px !important;
+    transform: none !important;
+    border-radius: 50% !important;
+    background:
+      radial-gradient(
+        circle at center,
+        rgba(200, 143, 147, 0.15) 0 31%,
+        transparent 31.5%
+      ),
+      radial-gradient(
+        ellipse at 50% 48%,
+        transparent 0 42%,
+        rgba(200, 143, 147, 0.13) 42.5% 43%,
+        transparent 43.5%
+      ) !important;
+    border: 0 !important;
+  }
+
+  .hero::before {
+    content: "" !important;
+    position: absolute !important;
+    right: 30px !important;
+    bottom: 38px !important;
+    width: 70px !important;
+    height: 1px !important;
+    background: rgba(200, 143, 147, 0.45) !important;
+    border: 0 !important;
+  }
+
+  .bottom-nav {
+    bottom: 10px !important;
+    width: calc(100% - 28px) !important;
+  }
+}
+
+/* Móvil: decoración muy ligera para no competir con el título. */
+@media (max-width: 680px) {
+  .hero::after {
+    width: 205px !important;
+    height: 205px !important;
+    right: -55px !important;
+    top: 28px !important;
+  }
+
+  .hero::before {
+    right: 22px !important;
+    bottom: 28px !important;
+    width: 55px !important;
+  }
+
+  .bottom-nav {
+    bottom: 8px !important;
+    width: calc(100% - 20px) !important;
+    border-radius: 23px !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .hero::after {
+    width: 180px !important;
+    height: 180px !important;
+    right: -52px !important;
+    top: 22px !important;
+  }
+
+  .hero::before {
+    right: 18px !important;
+    bottom: 25px !important;
+    width: 48px !important;
+  }
+}
+
+
+/* =========================================================
+   VESTELLE — V10
+   Ilustración editorial de moda.
+   Sustituye los círculos concéntricos de V9 por una
+   silueta lineal sutil inspirada en un perchero/prenda.
+   Solo presentación; no modifica la lógica.
+   ========================================================= */
+
+@media (min-width: 901px) {
+  /* Quitamos la composición circular anterior. */
+  .hero::after {
+    content: "" !important;
+    position: absolute !important;
+    right: 7.5% !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    width: 350px !important;
+    height: 350px !important;
+    border-radius: 50% !important;
+    background: rgba(200, 143, 147, 0.085) !important;
+    border: 1px solid rgba(200, 143, 147, 0.16) !important;
+    box-shadow: inset 0 0 0 28px rgba(200, 143, 147, 0.025) !important;
+    pointer-events: none !important;
+    z-index: 1 !important;
+  }
+
+  /* Perchero vintage lineal. */
+  .hero::before {
+    content: "" !important;
+    position: absolute !important;
+    right: calc(7.5% + 92px) !important;
+    bottom: 55px !important;
+    width: 145px !important;
+    height: 185px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    background:
+      /* gancho */
+      radial-gradient(
+        circle at 50% 8%,
+        transparent 0 13px,
+        rgba(200, 143, 147, 0.52) 13.5px 15px,
+        transparent 15.5px
+      ),
+      /* cuerpo de la prenda */
+      linear-gradient(
+        108deg,
+        transparent 0 37%,
+        rgba(200, 143, 147, 0.48) 37.5% 39%,
+        transparent 39.5% 61%,
+        rgba(200, 143, 147, 0.48) 61.5% 63%,
+        transparent 63.5%
+      ),
+      /* barra del perchero */
+      linear-gradient(
+        to bottom,
+        transparent 0 27%,
+        rgba(200, 143, 147, 0.42) 27.5% 29%,
+        transparent 29.5%
+      ),
+      /* falda/vestido */
+      linear-gradient(
+        166deg,
+        transparent 0 48%,
+        rgba(200, 143, 147, 0.34) 48.5% 49.5%,
+        transparent 50%
+      );
+    opacity: 0.72 !important;
+    pointer-events: none !important;
+    z-index: 2 !important;
+  }
+
+  /* Una línea de suelo editorial bajo la ilustración. */
+  .hero > * {
+    position: relative !important;
+    z-index: 4 !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .hero::after {
+    content: "" !important;
+    position: absolute !important;
+    right: -48px !important;
+    top: 30px !important;
+    transform: none !important;
+    width: 245px !important;
+    height: 245px !important;
+    border-radius: 50% !important;
+    background: rgba(200, 143, 147, 0.08) !important;
+    border: 1px solid rgba(200, 143, 147, 0.15) !important;
+    box-shadow: inset 0 0 0 20px rgba(200, 143, 147, 0.025) !important;
+  }
+
+  .hero::before {
+    content: "" !important;
+    position: absolute !important;
+    right: 38px !important;
+    bottom: 34px !important;
+    width: 100px !important;
+    height: 135px !important;
+    border: 0 !important;
+    background:
+      radial-gradient(
+        circle at 50% 8%,
+        transparent 0 10px,
+        rgba(200, 143, 147, 0.48) 10.5px 12px,
+        transparent 12.5px
+      ),
+      linear-gradient(
+        108deg,
+        transparent 0 37%,
+        rgba(200, 143, 147, 0.44) 37.5% 39%,
+        transparent 39.5% 61%,
+        rgba(200, 143, 147, 0.44) 61.5% 63%,
+        transparent 63.5%
+      ),
+      linear-gradient(
+        to bottom,
+        transparent 0 27%,
+        rgba(200, 143, 147, 0.38) 27.5% 29%,
+        transparent 29.5%
+      );
+    opacity: 0.68 !important;
+    pointer-events: none !important;
+  }
+}
+
+@media (max-width: 680px) {
+  .hero::after {
+    width: 205px !important;
+    height: 205px !important;
+    right: -52px !important;
+    top: 24px !important;
+  }
+
+  .hero::before {
+    right: 24px !important;
+    bottom: 27px !important;
+    width: 82px !important;
+    height: 112px !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .hero::after {
+    width: 180px !important;
+    height: 180px !important;
+    right: -50px !important;
+    top: 20px !important;
+  }
+
+  .hero::before {
+    right: 18px !important;
+    bottom: 24px !important;
+    width: 70px !important;
+    height: 96px !important;
+  }
+}
+
+
+/* =========================================================
+   VESTELLE — V11
+   Estadísticas del Inicio más sutiles y compactas.
+   Solo escritorio: menos altura y números más delicados.
+   ========================================================= */
+
+@media (min-width: 901px) {
+  .home-stats {
+    margin: 12px 0 30px !important;
+  }
+
+  .home-stats > div {
+    padding: 10px 12px !important;
+  }
+
+  .home-stats strong {
+    font-size: 26px !important;
+    line-height: 1.05 !important;
+    font-weight: 500 !important;
+  }
+
+  .home-stats span {
+    font-size: 11px !important;
+    letter-spacing: 0.12em !important;
+  }
+}
+
+
+/* =========================================================
+   VESTELLE — V12
+   RESTAURACIÓN FINAL DEL INICIO
+   - Hero compacto
+   - Perchero/vestido lineal restaurado
+   - Estadísticas sutiles conservadas
+   ========================================================= */
+
+@media (min-width: 901px) {
+
+  /* HERO: vuelve a la altura compacta que acabábamos de aprobar */
+  .hero {
+    min-height: 0 !important;
+    height: 300px !important;
+    padding: 24px 8% !important;
+    justify-content: center !important;
+    border-radius: 28px !important;
+  }
+
+  .hero .hero-eyebrow {
+    font-size: 11px !important;
+    letter-spacing: 0.25em !important;
+  }
+
+  .hero h1 {
+    font-size: 58px !important;
+    line-height: 0.92 !important;
+    margin: 6px 0 14px !important;
+  }
+
+  .hero p {
+    font-size: 15px !important;
+    line-height: 1.45 !important;
+    margin: 0 0 15px !important;
+  }
+
+  .hero .primary-button,
+  .hero button.primary-button {
+    min-width: 205px !important;
+    min-height: 44px !important;
+    padding: 9px 20px !important;
+    margin: 0 !important;
+  }
+
+  /* Círculo decorativo */
+  .hero::after {
+    content: "" !important;
+    position: absolute !important;
+    right: 7.5% !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    width: 290px !important;
+    height: 290px !important;
+    border-radius: 50% !important;
+    background: rgba(200, 143, 147, 0.085) !important;
+    border: 1px solid rgba(200, 143, 147, 0.16) !important;
+    box-shadow: inset 0 0 0 22px rgba(200, 143, 147, 0.025) !important;
+    pointer-events: none !important;
+    z-index: 1 !important;
+  }
+
+  /*
+    Ropero editorial.
+    Se dibuja como SVG para que no vuelva a aparecer
+    como un bloque rectangular.
+  */
+  .hero::before {
+    content: "" !important;
+    position: absolute !important;
+    right: calc(7.5% + 65px) !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    width: 150px !important;
+    height: 205px !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 150 205'%3E%3Cg fill='none' stroke='%23c88f93' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' opacity='.62'%3E%3Cpath d='M75 27c0-8 10-11 10-19 0-4-3-7-7-7'/%3E%3Cpath d='M75 27 22 67h106L75 27Z'/%3E%3Cpath d='M43 70c7 8 57 8 64 0'/%3E%3Cpath d='M47 72 38 166h74l-9-94'/%3E%3Cpath d='M48 88c14 8 40 8 54 0'/%3E%3Cpath d='M38 166 23 190'/%3E%3Cpath d='M112 166 127 190'/%3E%3C/g%3E%3C/svg%3E") !important;
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+    background-size: contain !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    opacity: 1 !important;
+    pointer-events: none !important;
+    z-index: 2 !important;
+  }
+
+  .hero > * {
+    position: relative !important;
+    z-index: 4 !important;
+  }
+}
+
+
+/* =========================================================
+   VESTELLE — V13
+   SOLO CAMBIOS SOLICITADOS
+   1. Looks guardados: tarjetas más pequeñas y en cuadrícula.
+   2. Barra inferior: iconos reales para Armario y Calendario.
+   3. Calendario: looks y prendas programadas más compactos.
+
+   No modifica Hero, estadísticas, colores generales ni lógica.
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   1. LOOKS GUARDADOS — TARJETAS PEQUEÑAS
+   --------------------------------------------------------- */
+
+@media (min-width: 901px) {
+  .saved-looks {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) !important;
+    gap: 14px !important;
+  }
+
+  .saved-looks .saved-look {
+    padding: 11px !important;
+    border-radius: 17px !important;
+  }
+
+  .saved-looks .saved-look-header {
+    margin-bottom: 9px !important;
+    gap: 6px !important;
+  }
+
+  .saved-looks .saved-look-header h3 {
+    font-size: 16px !important;
+    line-height: 1.1 !important;
+  }
+
+  .saved-looks .saved-look-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 5px !important;
+  }
+
+  .saved-looks .saved-look-item img,
+  .saved-looks .saved-look-image-placeholder,
+  .saved-looks .saved-look-grid > img {
+    height: 82px !important;
+    min-height: 82px !important;
+    aspect-ratio: 1 / 1 !important;
+    object-fit: cover !important;
+    border-radius: 9px !important;
+  }
+
+  .saved-looks .saved-look-item > span {
+    font-size: 9px !important;
+    padding: 5px 6px 6px !important;
+  }
+
+  .saved-looks .saved-look .edit-button,
+  .saved-looks .saved-look .delete-button {
+    font-size: 9px !important;
+    padding: 4px 6px !important;
+  }
+}
+
+/* ---------------------------------------------------------
+   2. BARRA INFERIOR — ARMARIO Y CALENDARIO
+   --------------------------------------------------------- */
+
+.bottom-nav button:nth-child(2) > span,
+.bottom-nav button:nth-child(4) > span {
+  font-size: 0 !important;
+  width: 23px !important;
+  height: 23px !important;
+  display: grid !important;
+  place-items: center !important;
+  flex-shrink: 0 !important;
+}
+
+.bottom-nav button:nth-child(2) > span::before,
+.bottom-nav button:nth-child(4) > span::before {
+  content: "" !important;
+  display: block !important;
+  width: 21px !important;
+  height: 21px !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+  background-size: contain !important;
+}
+
+/* Armario */
+.bottom-nav button:nth-child(2) > span::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b7971' stroke-width='1.45' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='4' y='3' width='16' height='18' rx='1.5'/%3E%3Cpath d='M12 3v18M8.5 8h1M14.5 8h1M7 21h10'/%3E%3C/svg%3E") !important;
+}
+
+/* Calendario */
+.bottom-nav button:nth-child(4) > span::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b7971' stroke-width='1.45' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='3.5' y='5' width='17' height='15.5' rx='2'/%3E%3Cpath d='M7 3.5v4M17 3.5v4M3.5 9h17M7 12.5h2M11 12.5h2M15 12.5h2M7 16h2M11 16h2M15 16h2'/%3E%3C/svg%3E") !important;
+}
+
+/* Estado activo: conserva el rosa de VESTELLE */
+.bottom-nav button.active:nth-child(2) > span::before,
+.bottom-nav button.active:nth-child(4) > span::before {
+  filter: sepia(0.08) saturate(0.7) brightness(0.88) !important;
+}
+
+/* ---------------------------------------------------------
+   3. CALENDARIO — LOOK YA ASIGNADO, MÁS PEQUEÑO
+   --------------------------------------------------------- */
+
+.page-section div[style*="minmax(110px"] {
+  grid-template-columns: repeat(auto-fit, 82px) !important;
+  justify-content: flex-start !important;
+  gap: 9px !important;
+}
+
+.page-section div[style*="minmax(110px"] > div {
+  width: 82px !important;
+  min-width: 82px !important;
+}
+
+.page-section div[style*="minmax(110px"] img {
+  width: 82px !important;
+  height: 100px !important;
+  aspect-ratio: auto !important;
+  object-fit: cover !important;
+  border-radius: 10px !important;
+}
+
+.page-section div[style*="minmax(110px"] small {
+  font-size: 9px !important;
+  line-height: 1.15 !important;
+  margin-top: 4px !important;
+}
+
+/* ---------------------------------------------------------
+   4. CALENDARIO — LOOKS DISPONIBLES MÁS PEQUEÑOS
+   --------------------------------------------------------- */
+
+.page-section div[style*="minmax(170px"] {
+  grid-template-columns: repeat(auto-fill, minmax(130px, 130px)) !important;
+  justify-content: flex-start !important;
+  gap: 11px !important;
+}
+
+.page-section div[style*="minmax(170px"] article {
+  border-radius: 15px !important;
+}
+
+.page-section div[style*="minmax(170px"] article > div:first-child {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+.page-section div[style*="minmax(170px"] article img {
+  width: 100% !important;
+  height: 64px !important;
+  aspect-ratio: 1 / 1 !important;
+  object-fit: cover !important;
+}
+
+.page-section div[style*="minmax(170px"] article h3 {
+  font-size: 14px !important;
+  margin: 7px 10px !important;
+}
+
+.page-section div[style*="minmax(170px"] article button {
+  min-height: 34px !important;
+  padding: 7px 9px !important;
+  font-size: 11px !important;
+  margin: 0 10px 10px !important;
+}
+
+@media (max-width: 600px) {
+  .saved-looks {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 9px !important;
+  }
+
+  .saved-looks .saved-look-item img,
+  .saved-looks .saved-look-image-placeholder,
+  .saved-looks .saved-look-grid > img {
+    height: 72px !important;
+    min-height: 72px !important;
+  }
+
+  .page-section div[style*="minmax(110px"] {
+    grid-template-columns: repeat(auto-fit, 72px) !important;
+  }
+
+  .page-section div[style*="minmax(110px"] > div {
+    width: 72px !important;
+    min-width: 72px !important;
+  }
+
+  .page-section div[style*="minmax(110px"] img {
+    width: 72px !important;
+    height: 88px !important;
+  }
+
+  .page-section div[style*="minmax(170px"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
+
+
+/* =========================================================
+   VESTELLE — V14
+   SOLO AJUSTES SOLICITADOS EN ESTA VUELTA
+   - Quitar el fondo cuadrado del roperito.
+   - Estadísticas centradas y más contenidas.
+   - Looks guardados como tarjetas pequeñas, ordenadas
+     en cuadrícula, con prendas visibles.
+   No toca Hero, navegación, colores ni lógica.
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   1. ROPERITO — SIN CUADRO
+   --------------------------------------------------------- */
+
+@media (min-width: 901px) {
+  .hero::before {
+    background-color: transparent !important;
+    background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 150 205'%3E%3Cg fill='none' stroke='%23c88f93' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' opacity='.62'%3E%3Cpath d='M75 27c0-8 10-11 10-19 0-4-3-7-7-7'/%3E%3Cpath d='M75 27 22 67h106L75 27Z'/%3E%3Cpath d='M43 70c7 8 57 8 64 0'/%3E%3Cpath d='M47 72 38 166h74l-9-94'/%3E%3Cpath d='M48 88c14 8 40 8 54 0'/%3E%3Cpath d='M38 166 23 190'/%3E%3Cpath d='M112 166 127 190'/%3E%3C/g%3E%3C/svg%3E") center / contain no-repeat !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+}
+
+/* ---------------------------------------------------------
+   2. ESTADÍSTICAS — CENTRADAS Y SUTILES
+   --------------------------------------------------------- */
+
+@media (min-width: 901px) {
+  .home-stats {
+    width: min(920px, 100%) !important;
+    margin: 12px auto 30px !important;
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+
+  .home-stats > div {
+    padding: 9px 12px !important;
+    text-align: center !important;
+  }
+
+  .home-stats strong {
+    font-size: 25px !important;
+    line-height: 1 !important;
+    font-weight: 500 !important;
+  }
+
+  .home-stats span {
+    font-size: 10px !important;
+    letter-spacing: 0.11em !important;
+  }
+}
+
+/* ---------------------------------------------------------
+   3. LOOKS GUARDADOS — TARJETAS PEQUEÑAS
+   --------------------------------------------------------- */
+
+@media (min-width: 901px) {
+  .saved-looks {
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(205px, 1fr)) !important;
+    gap: 14px !important;
+    align-items: start !important;
+    width: 100% !important;
+  }
+
+  .saved-looks > .section-heading {
+    grid-column: 1 / -1 !important;
+    margin-bottom: 4px !important;
+  }
+
+  .saved-looks .saved-look {
+    width: auto !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    padding: 11px !important;
+    border-radius: 17px !important;
+    box-sizing: border-box !important;
+  }
+
+  .saved-looks .saved-look-header {
+    margin-bottom: 8px !important;
+    gap: 5px !important;
+  }
+
+  .saved-looks .saved-look-header h3 {
+    font-size: 16px !important;
+    line-height: 1.05 !important;
+    margin: 3px 0 0 !important;
+  }
+
+  .saved-looks .saved-look-actions {
+    gap: 4px !important;
+  }
+
+  .saved-looks .saved-look .edit-button,
+  .saved-looks .saved-look .delete-button {
+    font-size: 8px !important;
+    padding: 4px 5px !important;
+    white-space: nowrap !important;
+  }
+
+  .saved-looks .saved-look-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 5px !important;
+  }
+
+  .saved-looks .saved-look-item {
+    min-width: 0 !important;
+    border-radius: 9px !important;
+  }
+
+  .saved-looks .saved-look-item img,
+  .saved-looks .saved-look-image-placeholder {
+    width: 100% !important;
+    height: 105px !important;
+    min-height: 105px !important;
+    aspect-ratio: auto !important;
+    object-fit: cover !important;
+    border-radius: 8px !important;
+  }
+
+  .saved-looks .saved-look-item > span {
+    font-size: 8px !important;
+    padding: 4px 5px 5px !important;
+    line-height: 1.15 !important;
+  }
+}
+
+@media (max-width: 900px) {
+  .saved-looks {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+
+  .saved-looks > .section-heading {
+    grid-column: 1 / -1 !important;
+  }
+
+  .saved-looks .saved-look {
+    margin: 0 !important;
+    padding: 9px !important;
+  }
+
+  .saved-looks .saved-look-item img,
+  .saved-looks .saved-look-image-placeholder {
+    height: 90px !important;
+    min-height: 90px !important;
+  }
+}
+
+
+/* =========================================================
+   VESTELLE — V16
+   SOLO ARMARIO — tarjetas realmente compactas
+   Pensado para colecciones grandes (100+ prendas).
+   ========================================================= */
+
+@media (min-width: 901px) {
+  .closet-grid {
+    grid-template-columns: repeat(7, minmax(0, 1fr)) !important;
+    gap: 13px !important;
+  }
+
+  .closet-card {
+    border-radius: 15px !important;
+  }
+
+  .closet-photo img {
+    height: 155px !important;
+    object-fit: cover !important;
+  }
+
+  .closet-info {
+    padding: 8px 9px !important;
+    gap: 6px !important;
+  }
+
+  .closet-info h3 {
+    font-size: 15px !important;
+    margin: 0 0 2px !important;
+  }
+
+  .closet-info p {
+    font-size: 10px !important;
+  }
+
+  .favorite-badge {
+    width: 24px !important;
+    height: 24px !important;
+    top: 7px !important;
+    right: 7px !important;
+    font-size: 13px !important;
+  }
+}
+
+
+/* =========================================================
+   VESTELLE — V17
+   SOLO INICIO
+   - Barra inferior un poco más baja.
+   - "Mi armario" usa miniaturas más pequeñas que Armario.
+   No modifica Armario, Looks, Calendario ni Hero.
+   ========================================================= */
+
+@media (min-width: 901px) {
+
+  /* Barra inferior más fina */
+  .bottom-nav {
+    padding: 4px !important;
+    border-radius: 21px !important;
+  }
+
+  .bottom-nav button {
+    padding: 5px 4px !important;
+    gap: 2px !important;
+    border-radius: 14px !important;
+  }
+
+  .bottom-nav button span,
+  .bottom-nav button:nth-child(2) > span,
+  .bottom-nav button:nth-child(4) > span {
+    width: 19px !important;
+    height: 19px !important;
+  }
+
+  .bottom-nav button:nth-child(2) > span::before,
+  .bottom-nav button:nth-child(4) > span::before {
+    width: 18px !important;
+    height: 18px !important;
+  }
+
+  .bottom-nav button small {
+    font-size: 9px !important;
+    line-height: 1.1 !important;
+  }
+
+  /* Miniaturas de "Mi armario": claramente menores que Armario */
+  .mini-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+  }
+
+  .mini-card {
+    border-radius: 13px !important;
+  }
+
+  .mini-card img {
+    height: 125px !important;
+    object-fit: cover !important;
+  }
+
+  .mini-card span {
+    padding: 7px 9px !important;
+    font-size: 10px !important;
+  }
+}
+
+
+/* =========================================================
+   VESTELLE — V18
+   SOLO "MI ARMARIO" EN INICIO
+   La prenda se muestra completa: menos ancha y un poco
+   más larga, sin modificar la pestaña Armario.
+   ========================================================= */
+
+@media (min-width: 901px) {
+  .mini-card img {
+    width: 78% !important;
+    height: 165px !important;
+    margin: 0 auto !important;
+    display: block !important;
+    object-fit: contain !important;
+    object-position: center !important;
+  }
+}
+
+
+/* =========================================================
+   VESTELLE — V19
+   SOLO "MI ARMARIO" EN INICIO
+   La tarjeta sigue exactamente el ancho de la foto:
+   sin laterales blancos.
+   ========================================================= */
+
+@media (min-width: 901px) {
+  .mini-grid {
+    grid-template-columns: repeat(4, 180px) !important;
+    gap: 12px !important;
+  }
+
+  .mini-card {
+    width: 180px !important;
+    border-radius: 13px !important;
+  }
+
+  .mini-card img {
+    width: 180px !important;
+    height: 180px !important;
+    margin: 0 !important;
+    display: block !important;
+    object-fit: cover !important;
+    object-position: center !important;
+  }
+
+  .mini-card span {
+    padding: 7px 9px !important;
+    font-size: 10px !important;
+  }
+}
+
+
+/* =========================================================
+   VESTELLE — V20
+   SOLO INICIO
+   - Acciones "Crear un look / Elige por mí" pasan encima
+     de "Mi armario".
+   - Se convierten en tarjetas compactas y sutiles.
+   - No modifica Armario, Looks, Calendario ni Hero.
+   ========================================================= */
+
+@media (min-width: 901px) {
+  .home-page {
+    display: flex !important;
+    flex-direction: column !important;
+  }
+
+  .home-page .hero {
+    order: 1 !important;
+  }
+
+  .home-page .home-stats {
+    order: 2 !important;
+  }
+
+  .home-page .home-buttons {
+    order: 3 !important;
+  }
+
+  .home-page .home-block {
+    order: 4 !important;
+  }
+
+  .home-page .home-buttons {
+    width: 100% !important;
+    gap: 12px !important;
+    margin: 0 0 34px !important;
+  }
+
+  .home-page .feature-card {
+    min-height: 0 !important;
+    height: 92px !important;
+    padding: 15px 20px !important;
+    border-radius: 17px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+  }
+
+  .home-page .feature-icon {
+    font-size: 18px !important;
+    line-height: 1 !important;
+    margin-bottom: 5px !important;
+  }
+
+  .home-page .feature-card strong {
+    font-size: 18px !important;
+    line-height: 1.15 !important;
+  }
+
+  .home-page .feature-card small {
+    font-size: 11px !important;
+    margin-top: 3px !important;
+  }
+}
+
+
+/* =========================================================
+   VESTELLE — V22
+   SOLO ESTADÍSTICAS DE INICIO
+   Más compactas y menos altas.
+   ========================================================= */
+
+@media (min-width: 901px) {
+  .home-page .home-stats {
+    width: 72% !important;
+    align-self: center !important;
+    min-height: 0 !important;
+    height: 54px !important;
+    margin: 8px auto 20px !important;
+  }
+
+  .home-page .home-stats > div {
+    padding: 4px 8px !important;
+  }
+
+  .home-page .home-stats strong {
+    font-size: 21px !important;
+    line-height: 1 !important;
+  }
+
+  .home-page .home-stats span {
+    font-size: 9px !important;
+    line-height: 1 !important;
+    letter-spacing: 0.09em !important;
+  }
+}
+
+
+/* =========================================================
+   VESTELLE — V23
+   SOLO BOTONES DE ACCIÓN EN INICIO
+   Menos anchos, manteniendo ambos centrados.
+   ========================================================= */
+
+@media (min-width: 901px) {
+  .home-page .home-buttons {
+    width: 72% !important;
+    align-self: center !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    gap: 12px !important;
+  }
+
+  .home-page .feature-card {
+    min-width: 0 !important;
+    width: 100% !important;
+  }
+}
+
+
+/* =========================================================
+   VESTELLE — V24
+   SOLO TABLERO DE LOOKS
+   Panel inicial más bajo y compacto.
+   ========================================================= */
+
+@media (min-width: 901px) {
+  .look-board {
+    min-height: 330px !important;
+    padding: 22px !important;
+  }
+
+  .look-board .empty-board {
+    min-height: 275px !important;
+  }
+
+  .look-board .empty-board-icon {
+    font-size: 36px !important;
+    margin-bottom: 8px !important;
+  }
+
+  .look-board .empty-board h3 {
+    font-size: 24px !important;
+    margin-bottom: 6px !important;
+  }
+
+  .look-board .empty-board p {
+    line-height: 1.45 !important;
+  }
+}
+
+
+/* =========================================================
+   VESTELLE — V25
+   SOLO ÁREA "GUARDAR LOOK"
+   Más compacta y corrige el ancho del campo de nombre.
+   ========================================================= */
+
+@media (min-width: 901px) {
+  .look-save-area {
+    padding: 16px 18px !important;
+    border-radius: 18px !important;
+    margin-bottom: 28px !important;
+  }
+
+  .look-save-area label {
+    font-size: 11px !important;
+    margin-bottom: 6px !important;
+  }
+
+  .look-save-area input {
+    box-sizing: border-box !important;
+    width: 100% !important;
+    padding: 10px 13px !important;
+    min-height: 48px !important;
+    margin-bottom: 10px !important;
+    border-radius: 11px !important;
+  }
+
+  .look-save-area button {
+    width: 100% !important;
+    min-height: 48px !important;
+    padding: 10px 18px !important;
+    border-radius: 999px !important;
+    margin: 0 !important;
+  }
+}
+
+
+/* =========================================================
+   VESTELLE — V26
+   SOLO SELECCIÓN DE PRENDAS EN LOOKS
+   Tarjetas mucho más pequeñas para poder ver muchas prendas
+   y seleccionarlas con facilidad.
+   ========================================================= */
+
+@media (min-width: 901px) {
+  .selection-grid {
+    grid-template-columns: repeat(8, minmax(0, 1fr)) !important;
+    gap: 10px !important;
+  }
+
+  .selection-card {
+    border-radius: 11px !important;
+  }
+
+  .selection-card img {
+    height: 105px !important;
+    max-height: 105px !important;
+  }
+
+  .selection-card small {
+    padding: 6px 7px !important;
+    font-size: 9px !important;
+    line-height: 1.15 !important;
+  }
+}
