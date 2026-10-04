@@ -166,6 +166,12 @@ function App() {
   const [cargandoPrendas, setCargandoPrendas] = useState(true);
   const [cargandoLooks, setCargandoLooks] = useState(true);
 
+  const [mesCalendario, setMesCalendario] = useState(() => new Date());
+  const [diaCalendario, setDiaCalendario] = useState(() => new Date());
+  const [planificacionesCalendario, setPlanificacionesCalendario] =
+    useState({});
+  const [cargandoCalendario, setCargandoCalendario] = useState(true);
+
   const cargaPrendasIniciada = useRef(false);
   const cargaLooksIniciada = useRef(false);
 
@@ -212,10 +218,6 @@ function App() {
   ===================================================== */
 
   useEffect(() => {
-    if (cargaLooksIniciada.current) return;
-    if (cargandoPrendas) return;
-
-    cargaLooksIniciada.current = true;
     let activo = true;
 
     const cargarLooks = async () => {
@@ -281,18 +283,12 @@ function App() {
           relaciones = filasRelaciones || [];
         }
 
-        // Usamos primero las prendas cargadas desde Supabase y, como respaldo,
-        // las prendas que ya están en el estado de React. Así el look nunca
-        // pierde sus fotos si una URL firmada tarda en generarse.
-        const prendasPorId = new Map();
-
-        prendas.forEach((prenda) => {
-          prendasPorId.set(prenda.id, prenda);
-        });
-
-        prendasCloud.forEach((prenda) => {
-          prendasPorId.set(prenda.id, prenda);
-        });
+        // Los looks del calendario usan las prendas recién cargadas desde
+        // Supabase. Así esta carga es independiente del estado visual de
+        // Armario y no puede quedarse esperando a que ese estado termine.
+        const prendasPorId = new Map(
+          prendasCloud.map((prenda) => [prenda.id, prenda])
+        );
 
         const looksCloud = (filasLooks || []).map((filaLook) => {
           const idsPrendas = relaciones
@@ -346,7 +342,7 @@ function App() {
     return () => {
       activo = false;
     };
-  }, [cargandoPrendas]);
+  }, []);
 
 
   /* =====================================================
@@ -434,14 +430,6 @@ function App() {
 
 
   useEffect(() => {
-
-    if (cargaPrendasIniciada.current) return;
-
-
-
-    cargaPrendasIniciada.current = true;
-
-
 
     let activo = true;
 
@@ -4573,83 +4561,709 @@ function App() {
 
   ===================================================== */
 
+  const obtenerClaveFecha = (fecha) => {
+    const year = fecha.getFullYear();
+    const month = String(fecha.getMonth() + 1).padStart(2, "0");
+    const day = String(fecha.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
 
+  const cambiarMesCalendario = (cantidad) => {
+    setMesCalendario(
+      (actual) =>
+        new Date(
+          actual.getFullYear(),
+          actual.getMonth() + cantidad,
+          1
+        )
+    );
+  };
 
-  const renderCalendario = () => (
+  const seleccionarDiaCalendario = (fecha) => {
+    setDiaCalendario(fecha);
+  };
 
-    <section className="page-section">
+  /* =====================================================
+     CALENDARIO EN SUPABASE
+  ===================================================== */
 
-      <div className="page-header">
+  useEffect(() => {
+    if (cargandoLooks) {
+      return;
+    }
 
-        <div>
+    let activo = true;
 
-          <small>
+    const cargarPlanificacionesCalendario = async () => {
+      setCargandoCalendario(true);
 
-            ORGANIZA TU ESTILO
+      try {
+        const { data: usuarioData, error: usuarioError } =
+          await supabase.auth.getUser();
 
-          </small>
+        if (usuarioError) throw usuarioError;
 
+        if (!usuarioData?.user) {
+          throw new Error("No hay un usuario autenticado.");
+        }
 
+        const usuarioId = usuarioData.user.id;
 
-          <h1>
+        const { data, error } = await supabase
+          .from("calendario_looks")
+          .select("fecha, look_id")
+          .eq("user_id", usuarioId);
 
-            Calendario
+        if (error) throw error;
 
-          </h1>
+        const planificaciones = {};
 
+        (data || []).forEach((fila) => {
+          planificaciones[fila.fecha] = fila.look_id;
+        });
 
+        if (activo) {
+          setPlanificacionesCalendario(planificaciones);
+        }
+      } catch (error) {
+        console.error(
+          "ERROR CARGANDO EL CALENDARIO DESDE SUPABASE:",
+          error
+        );
 
-          <p>
+        if (activo) {
+          alert(
+            `No pudimos cargar tu calendario.\n\n${
+              error?.message || "Error desconocido"
+            }`
+          );
+        }
+      } finally {
+        if (activo) {
+          setCargandoCalendario(false);
+        }
+      }
+    };
 
-            Próximamente podrás planear
+    cargarPlanificacionesCalendario();
 
-            tus looks.
+    return () => {
+      activo = false;
+    };
+  }, [cargandoLooks]);
 
-          </p>
+  const guardarPlanificacionCalendario = async (lookId) => {
+    const clave = obtenerClaveFecha(diaCalendario);
 
+    try {
+      const { data: usuarioData, error: usuarioError } =
+        await supabase.auth.getUser();
+
+      if (usuarioError) throw usuarioError;
+
+      if (!usuarioData?.user) {
+        throw new Error("No hay un usuario autenticado.");
+      }
+
+      const usuarioId = usuarioData.user.id;
+
+      const { error } = await supabase
+        .from("calendario_looks")
+        .upsert(
+          {
+            user_id: usuarioId,
+            fecha: clave,
+            look_id: lookId,
+          },
+          {
+            onConflict: "user_id,fecha",
+          }
+        );
+
+      if (error) throw error;
+
+      setPlanificacionesCalendario((prev) => ({
+        ...prev,
+        [clave]: lookId,
+      }));
+    } catch (error) {
+      console.error(
+        "ERROR GUARDANDO LA PLANIFICACIÓN EN SUPABASE:",
+        error
+      );
+
+      alert(
+        `No pudimos guardar la planificación.\n\n${
+          error?.message || "Error desconocido"
+        }`
+      );
+    }
+  };
+
+  const quitarPlanificacionCalendario = async () => {
+    const clave = obtenerClaveFecha(diaCalendario);
+
+    try {
+      const { data: usuarioData, error: usuarioError } =
+        await supabase.auth.getUser();
+
+      if (usuarioError) throw usuarioError;
+
+      if (!usuarioData?.user) {
+        throw new Error("No hay un usuario autenticado.");
+      }
+
+      const usuarioId = usuarioData.user.id;
+
+      const { error } = await supabase
+        .from("calendario_looks")
+        .delete()
+        .eq("user_id", usuarioId)
+        .eq("fecha", clave);
+
+      if (error) throw error;
+
+      setPlanificacionesCalendario((prev) => {
+        const siguiente = { ...prev };
+        delete siguiente[clave];
+        return siguiente;
+      });
+    } catch (error) {
+      console.error(
+        "ERROR QUITANDO LA PLANIFICACIÓN DE SUPABASE:",
+        error
+      );
+
+      alert(
+        `No pudimos quitar la planificación.\n\n${
+          error?.message || "Error desconocido"
+        }`
+      );
+    }
+  };
+
+  const renderCalendario = () => {
+    const nombresMeses = [
+      "Enero",
+      "Febrero",
+      "Marzo",
+      "Abril",
+      "Mayo",
+      "Junio",
+      "Julio",
+      "Agosto",
+      "Septiembre",
+      "Octubre",
+      "Noviembre",
+      "Diciembre",
+    ];
+
+    const nombresDias = ["L", "M", "M", "J", "V", "S", "D"];
+
+    const año = mesCalendario.getFullYear();
+    const mes = mesCalendario.getMonth();
+    const primerDiaMes = new Date(año, mes, 1);
+    const cantidadDiasMes = new Date(año, mes + 1, 0).getDate();
+    const desplazamiento = (primerDiaMes.getDay() + 6) % 7;
+
+    const dias = [];
+
+    for (let i = 0; i < desplazamiento; i += 1) {
+      dias.push(null);
+    }
+
+    for (let dia = 1; dia <= cantidadDiasMes; dia += 1) {
+      dias.push(new Date(año, mes, dia));
+    }
+
+    while (dias.length % 7 !== 0) {
+      dias.push(null);
+    }
+
+    const claveDiaSeleccionado = obtenerClaveFecha(diaCalendario);
+    const lookProgramadoId =
+      planificacionesCalendario[claveDiaSeleccionado] || null;
+    const lookProgramado = looks.find(
+      (look) => look.id === lookProgramadoId
+    );
+
+    const hoy = new Date();
+    const claveHoy = obtenerClaveFecha(hoy);
+
+    const formatoDiaSeleccionado = diaCalendario.toLocaleDateString(
+      "es-CO",
+      {
+        weekday: "long",
+        day: "numeric",
+        month: "long",
+      }
+    );
+
+    return (
+      <section className="page-section">
+        <div className="page-header">
+          <div>
+            <small>ORGANIZA TU ESTILO</small>
+            <h1>Calendario</h1>
+            <p>
+              Planea tus looks y empieza a crear tu propio historial de estilo.
+            </p>
+          </div>
         </div>
 
-      </div>
+        <div
+          style={{
+            background: "rgba(255, 253, 250, 0.94)",
+            border: "1px solid #eadbd2",
+            borderRadius: "28px",
+            padding: "clamp(18px, 4vw, 34px)",
+            boxShadow: "0 18px 45px rgba(73, 61, 57, 0.07)",
+            marginBottom: "28px",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "16px",
+              marginBottom: "24px",
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => cambiarMesCalendario(-1)}
+              aria-label="Mes anterior"
+              style={{
+                width: "42px",
+                height: "42px",
+                borderRadius: "50%",
+                border: "1px solid #eadbd2",
+                background: "#fffdfb",
+                color: "#493d39",
+                cursor: "pointer",
+                fontSize: "22px",
+              }}
+            >
+              ‹
+            </button>
 
+            <div style={{ textAlign: "center" }}>
+              <small
+                style={{
+                  color: "#c88f93",
+                  letterSpacing: "0.18em",
+                  fontWeight: 700,
+                  textTransform: "uppercase",
+                }}
+              >
+                Tu mes
+              </small>
+              <h2
+                style={{
+                  margin: "5px 0 0",
+                  color: "#493d39",
+                  fontFamily: "Georgia, serif",
+                  fontSize: "clamp(25px, 5vw, 38px)",
+                  fontWeight: 400,
+                }}
+              >
+                {nombresMeses[mes]} {año}
+              </h2>
+            </div>
 
+            <button
+              type="button"
+              onClick={() => cambiarMesCalendario(1)}
+              aria-label="Mes siguiente"
+              style={{
+                width: "42px",
+                height: "42px",
+                borderRadius: "50%",
+                border: "1px solid #eadbd2",
+                background: "#fffdfb",
+                color: "#493d39",
+                cursor: "pointer",
+                fontSize: "22px",
+              }}
+            >
+              ›
+            </button>
+          </div>
 
-      <div className="coming-soon">
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(7, minmax(0, 1fr))",
+              gap: "6px",
+              marginBottom: "8px",
+            }}
+          >
+            {nombresDias.map((nombreDia, index) => (
+              <div
+                key={`${nombreDia}-${index}`}
+                style={{
+                  textAlign: "center",
+                  color: "#8b7971",
+                  fontSize: "12px",
+                  fontWeight: 700,
+                  letterSpacing: "0.08em",
+                  padding: "7px 0",
+                }}
+              >
+                {nombreDia}
+              </div>
+            ))}
+          </div>
 
-        <div className="coming-soon-icon">
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(7, minmax(0, 1fr))",
+              gap: "6px",
+            }}
+          >
+            {dias.map((fecha, index) => {
+              if (!fecha) {
+                return <div key={`empty-${index}`} style={{ minHeight: "54px" }} />;
+              }
 
-          ♧
+              const clave = obtenerClaveFecha(fecha);
+              const seleccionado = clave === claveDiaSeleccionado;
+              const esHoy = clave === claveHoy;
+              const tieneLook = Boolean(planificacionesCalendario[clave]);
 
+              return (
+                <button
+                  key={clave}
+                  type="button"
+                  onClick={() => seleccionarDiaCalendario(fecha)}
+                  style={{
+                    minHeight: "58px",
+                    borderRadius: "16px",
+                    border: seleccionado
+                      ? "1.5px solid #c88f93"
+                      : "1px solid transparent",
+                    background: seleccionado ? "#eadbd2" : "transparent",
+                    color: "#493d39",
+                    cursor: "pointer",
+                    position: "relative",
+                    padding: "8px 4px",
+                    fontSize: "15px",
+                    fontWeight: esHoy || seleccionado ? 700 : 500,
+                  }}
+                >
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: "30px",
+                      height: "30px",
+                      borderRadius: "50%",
+                      background: esHoy && !seleccionado ? "#c88f93" : "transparent",
+                      color: esHoy && !seleccionado ? "#fff" : "inherit",
+                    }}
+                  >
+                    {fecha.getDate()}
+                  </span>
+
+                  {tieneLook && (
+                    <span
+                      style={{
+                        display: "block",
+                        width: "5px",
+                        height: "5px",
+                        borderRadius: "50%",
+                        background: "#c88f93",
+                        margin: "3px auto 0",
+                      }}
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
+        <div
+          style={{
+            background: "#fffdfb",
+            border: "1px solid #eadbd2",
+            borderRadius: "28px",
+            padding: "clamp(20px, 4vw, 32px)",
+            marginBottom: "28px",
+          }}
+        >
+          <div style={{ marginBottom: "20px" }}>
+            <small
+              style={{
+                color: "#c88f93",
+                letterSpacing: "0.18em",
+                fontWeight: 700,
+              }}
+            >
+              PLANIFICA
+            </small>
+            <h2
+              style={{
+                margin: "6px 0 4px",
+                color: "#493d39",
+                fontFamily: "Georgia, serif",
+                fontSize: "clamp(25px, 5vw, 34px)",
+                fontWeight: 400,
+              }}
+            >
+              {formatoDiaSeleccionado}
+            </h2>
+            <p style={{ margin: 0, color: "#8b7971" }}>
+              Elige uno de tus looks guardados para este día.
+            </p>
+          </div>
 
+          {cargandoCalendario ? (
+            <div
+              style={{
+                border: "1px dashed #d9c4bc",
+                borderRadius: "20px",
+                padding: "18px",
+                color: "#8b7971",
+                background: "#fdf9f5",
+                marginBottom: "22px",
+                textAlign: "center",
+              }}
+            >
+              Cargando tu calendario...
+            </div>
+          ) : lookProgramado ? (
+            <div
+              style={{
+                border: "1px solid #eadbd2",
+                borderRadius: "22px",
+                padding: "16px",
+                background: "#f8f1e8",
+                marginBottom: "22px",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: "12px",
+                  marginBottom: "14px",
+                }}
+              >
+                <div>
+                  <small style={{ color: "#c88f93", letterSpacing: "0.14em" }}>
+                    LOOK PROGRAMADO
+                  </small>
+                  <h3
+                    style={{
+                      margin: "5px 0 0",
+                      color: "#493d39",
+                      fontFamily: "Georgia, serif",
+                      fontSize: "24px",
+                      fontWeight: 400,
+                    }}
+                  >
+                    {lookProgramado.nombre}
+                  </h3>
+                </div>
 
-        <h2>
+                <button
+                  type="button"
+                  onClick={quitarPlanificacionCalendario}
+                  style={{
+                    border: "1px solid #eadbd2",
+                    background: "#fffdfb",
+                    color: "#8b7971",
+                    borderRadius: "999px",
+                    padding: "9px 14px",
+                    cursor: "pointer",
+                  }}
+                >
+                  Quitar
+                </button>
+              </div>
 
-          Tu estilo, día a día
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(110px, 1fr))",
+                  gap: "10px",
+                }}
+              >
+                {lookProgramado.prendas.map((prenda) => (
+                  <div key={prenda.id}>
+                    <img
+                      src={prenda.foto}
+                      alt={prenda.nombre}
+                      style={{
+                        width: "100%",
+                        aspectRatio: "0.82",
+                        objectFit: "cover",
+                        borderRadius: "15px",
+                        display: "block",
+                      }}
+                    />
+                    <small
+                      style={{
+                        display: "block",
+                        color: "#8b7971",
+                        textAlign: "center",
+                        marginTop: "7px",
+                      }}
+                    >
+                      {prenda.nombre}
+                    </small>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div
+              style={{
+                border: "1px dashed #d9c4bc",
+                borderRadius: "20px",
+                padding: "18px",
+                color: "#8b7971",
+                background: "#fdf9f5",
+                marginBottom: "22px",
+              }}
+            >
+              Aún no tienes un look asignado para este día.
+            </div>
+          )}
 
-        </h2>
+          {looks.length === 0 ? (
+            <p style={{ color: "#8b7971" }}>
+              Primero guarda un look en la sección Looks y aparecerá aquí para
+              planificarlo.
+            </p>
+          ) : (
+            <div>
+              <small
+                style={{
+                  color: "#c88f93",
+                  letterSpacing: "0.15em",
+                  fontWeight: 700,
+                }}
+              >
+                TUS LOOKS
+              </small>
 
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(170px, 1fr))",
+                  gap: "14px",
+                  marginTop: "12px",
+                }}
+              >
+                {looks.map((look) => (
+                  <article
+                    key={look.id}
+                    style={{
+                      border: "1px solid #eadbd2",
+                      borderRadius: "20px",
+                      overflow: "hidden",
+                      background: "#fffdfb",
+                      position: "relative",
+                      zIndex: 30,
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: `repeat(${Math.min(
+                          look.prendas.length,
+                          2
+                        )}, 1fr)`,
+                        gap: "2px",
+                        background: "#eadbd2",
+                      }}
+                    >
+                      {look.prendas.slice(0, 2).map((prenda) => (
+                        <img
+                          key={prenda.id}
+                          src={prenda.foto}
+                          alt={prenda.nombre}
+                          style={{
+                            width: "100%",
+                            aspectRatio: "0.82",
+                            objectFit: "cover",
+                            display: "block",
+                          }}
+                        />
+                      ))}
+                    </div>
 
+                    <div style={{ padding: "13px" }}>
+                      <h3
+                        style={{
+                          margin: "0 0 10px",
+                          color: "#493d39",
+                          fontFamily: "Georgia, serif",
+                          fontSize: "20px",
+                          fontWeight: 400,
+                        }}
+                      >
+                        {look.nombre}
+                      </h3>
 
-        <p>
+                      <button
+                        type="button"
+                        aria-label={`Usar el look ${look.nombre}`}
+                        onPointerDown={(event) => {
+                          event.preventDefault();
+                        }}
+                        onClick={(event) => {
+                          event.preventDefault();
+                          event.stopPropagation();
+                          void guardarPlanificacionCalendario(look.id);
+                        }}
+                        style={{
+                          width: "100%",
+                          minHeight: "48px",
+                          border: "none",
+                          background: "#c88f93",
+                          color: "#fff",
+                          borderRadius: "999px",
+                          padding: "12px 14px",
+                          cursor: "pointer",
+                          fontWeight: 600,
+                          position: "relative",
+                          zIndex: 50,
+                          pointerEvents: "auto",
+                          touchAction: "manipulation",
+                        }}
+                      >
+                        Usar este look
+                      </button>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
 
-          Aquí podrás organizar qué look
-
-          usar cada día, guardar tu
-
-          historial y descubrir cuáles
-
-          son tus prendas favoritas.
-
+        <p
+          style={{
+            color: "#8b7971",
+            fontSize: "13px",
+            textAlign: "center",
+            margin: "10px 0 20px",
+          }}
+        >
+          Por ahora, la planificación se guarda en este dispositivo. En el
+          siguiente paso podemos llevarla también a Supabase para que aparezca
+          en todos tus dispositivos.
         </p>
-
-      </div>
-
-    </section>
-
-  );
-
-
+      </section>
+    );
+  };
 
   /* =====================================================
 
