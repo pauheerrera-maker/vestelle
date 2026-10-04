@@ -3386,3 +3386,200 @@ main {
     padding: 10px 17px !important;
   }
 }
+
+
+/* =========================================================
+   VESTELLE — V5
+   Igualar la composición visual del demo
+   sin tocar la lógica de la aplicación
+   ========================================================= */
+
+/* Fondo general */
+html,
+body,
+#root {
+  background: var(--cream) !important;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+/* Header más fino y editorial */
+.top-header {
+  height: 68px !important;
+  padding: 0 34px !important;
+  background: rgba(248, 241, 232, 0.98) !important;
+  border-bottom: 1px solid var(--line) !important;
+}
+
+.brand-name {
+  letter-spacing: 0.22em !important;
+  font-size: 18px !important;
+}
+
+.brand-mark {
+  font-size: 27px !important;
+}
+
+/* Contenedor principal */
+.page-section {
+  width: min(1080px, calc(100% - 64px)) !important;
+  padding: 48px 0 90px !important;
+  margin: 0 auto !important;
+}
+
+/* Hero: proporción más parecida al demo */
+.hero {
+  min-height: 430px !important;
+  height: 430px !important;
+  padding: 52px 8% !important;
+  border-radius: 30px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+/* Limitar el contenido para que no se estire en escritorio */
+.hero h1 {
+  max-width: 650px !important;
+  font-size: clamp(54px, 6vw, 78px) !important;
+  line-height: 0.98 !important;
+  letter-spacing: -0.045em !important;
+  margin: 18px 0 28px !important;
+}
+
+.hero p {
+  max-width: 520px !important;
+  font-size: 18px !important;
+  line-height: 1.7 !important;
+}
+
+/* Botón principal visible */
+.hero .primary-button {
+  align-self: flex-start !important;
+  width: auto !important;
+  min-width: 188px !important;
+  min-height: 48px !important;
+  padding: 12px 22px !important;
+  margin-top: 28px !important;
+  border-radius: 28px !important;
+  background: var(--brown-dark) !important;
+  color: #fff !important;
+  border: 1px solid var(--brown-dark) !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  position: relative !important;
+  z-index: 5 !important;
+}
+
+/* Decoración del Hero */
+.hero::before,
+.hero::after {
+  pointer-events: none !important;
+}
+
+/* Modal completamente opaco */
+.modal-overlay {
+  background: rgba(73, 61, 57, 0.48) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  opacity: 1 !important;
+}
+
+.modal {
+  background: var(--cream) !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  isolation: isolate !important;
+  border: 1px solid var(--line) !important;
+}
+
+.upload-area,
+.form-grid input,
+.form-grid select,
+.favorite-toggle,
+.modal-close {
+  background: var(--white) !important;
+  opacity: 1 !important;
+}
+
+/* Barra inferior: compacta y centrada */
+.bottom-nav {
+  width: min(700px, calc(100% - 30px)) !important;
+  padding: 8px !important;
+  border-radius: 25px !important;
+  background: rgba(255, 253, 251, 0.98) !important;
+  border: 1px solid var(--line) !important;
+  box-shadow: 0 12px 35px rgba(73, 61, 57, 0.12) !important;
+}
+
+/* =========================================================
+   ESCRITORIO
+   ========================================================= */
+@media (min-width: 901px) {
+  .page-section {
+    padding-top: 78px !important;
+  }
+
+  .hero {
+    width: 100% !important;
+    max-width: 1080px !important;
+    margin: 0 auto !important;
+  }
+}
+
+/* =========================================================
+   TABLET / MÓVIL
+   ========================================================= */
+@media (max-width: 900px) {
+  .top-header {
+    height: 64px !important;
+    padding: 0 20px !important;
+  }
+
+  .page-section {
+    width: calc(100% - 28px) !important;
+    padding: 28px 0 88px !important;
+  }
+
+  .hero {
+    height: auto !important;
+    min-height: 365px !important;
+    padding: 34px 24px !important;
+    border-radius: 28px !important;
+  }
+
+  .hero h1 {
+    font-size: clamp(48px, 11vw, 64px) !important;
+    margin-top: 16px !important;
+  }
+
+  .hero p {
+    font-size: 17px !important;
+  }
+
+  .hero .primary-button {
+    min-width: 188px !important;
+    min-height: 48px !important;
+    margin-top: 22px !important;
+  }
+}
+
+@media (max-width: 680px) {
+  .hero {
+    min-height: 365px !important;
+    padding: 34px 24px !important;
+  }
+
+  .hero h1 {
+    font-size: 52px !important;
+    line-height: 0.98 !important;
+  }
+
+  .bottom-nav {
+    width: calc(100% - 18px) !important;
+  }
+}
