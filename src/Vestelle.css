@@ -9404,3 +9404,54 @@ button.primary-button:hover {
     line-height: 1.15 !important;
   }
 }
+
+
+/* =========================================================
+   VESTELLE — FONDO EXACTO DEL DEMO
+   No cambia la paleta ni inventa otro color.
+   Replica exactamente el fondo definido en .app al inicio
+   del CSS y lo hace persistente en la página publicada.
+   ========================================================= */
+
+html,
+body,
+#root {
+  background-color: #f8f1e8 !important;
+  background-image: none !important;
+}
+
+html,
+body {
+  min-height: 100% !important;
+}
+
+body {
+  margin: 0 !important;
+  background: #f8f1e8 !important;
+}
+
+#root {
+  min-height: 100vh !important;
+  background: #f8f1e8 !important;
+}
+
+/* ESTE es el fondo que tiene el demo: degradado radial + crema. */
+#root > .app,
+.app {
+  min-height: 100vh !important;
+  background:
+    radial-gradient(
+      circle at 10% 0%,
+      rgba(200, 143, 147, 0.08),
+      transparent 30%
+    ),
+    #f8f1e8 !important;
+  background-color: #f8f1e8 !important;
+}
+
+/* El área de las pestañas deja ver el mismo fondo del demo.
+   Las tarjetas internas conservan sus propios fondos blancos. */
+.app > main,
+.app main {
+  background: transparent !important;
+}
