@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 
-import "./App.css";
+import "./Vestelle.css";
 
 import { supabase } from "./lib/supabase";
 
