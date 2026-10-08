@@ -9484,3 +9484,20 @@ body {
   background: #fffdfb !important;
   border: 1px solid rgba(73, 61, 57, 0.12) !important;
 }
+
+/* =========================================================
+   VESTELLE — SOLO COLOR DE LAS TARJETAS
+   ÚNICO CAMBIO: las tarjetas quedan un poco más claras
+   que el fondo general. No modifica bordes, tamaños,
+   sombras, espacios, textos ni ninguna otra propiedad.
+   ========================================================= */
+
+.mini-card,
+.feature-card,
+.closet-card,
+.selection-card,
+.more-card,
+.saved-look,
+.scheduled-look {
+  background: #fffdfb !important;
+}
